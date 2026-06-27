@@ -155,6 +155,10 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         ⏳ <span id="pendientes-count">0</span> cambio(s) esperando conexión para sincronizar
       </div>
 
+      <div class="relative">
+        <input type="text" id="buscador-inventario" placeholder="🔎 Buscar por nombre o lote..." class="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-blue-500 text-sm">
+      </div>
+
       <div class="flex gap-2 px-1" id="filtros-inventario">
         <button type="button" data-filtro="todos" class="filtro-btn flex-1 text-xs font-bold py-2 rounded-lg bg-blue-600 text-white transition-colors">Todos</button>
         <button type="button" data-filtro="en_acopio" class="filtro-btn flex-1 text-xs font-bold py-2 rounded-lg bg-gray-100 text-gray-500 transition-colors">En Acopio</button>
@@ -510,7 +514,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         const destino = tab.getAttribute('data-tab');
         paneles.forEach(p => p.classList.add('hidden'));
         document.getElementById(`panel-${destino}`).classList.remove('hidden');
-        if (destino === 'inventario') renderInventario();
+        if (destino === 'inventario') actualizarInventario();
         if (destino === 'lista') generarQR();
         if (destino === 'config') actualizarPanelConfig();
       });
@@ -688,6 +692,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     }
 
     let filtroActual = 'todos';
+    let terminoBusqueda = '';
     let seleccionados = new Set();
     let inventarioCache = [];
 
@@ -701,13 +706,18 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       return data;
     }
 
-    async function renderInventario(filtro = filtroActual) {
+    // Trae datos frescos de Supabase y vuelve a pintar (usar al entrar a la pestaña, refrescar, etc.)
+    async function actualizarInventario(filtro = filtroActual) {
+      const remoto = await obtenerInventarioRemoto();
+      if (remoto) inventarioCache = remoto;
+      dibujarInventario(filtro);
+    }
+
+    // Solo filtra y pinta lo que ya está en memoria — instantáneo, ideal para el buscador
+    function dibujarInventario(filtro = filtroActual) {
       const lista = document.getElementById('lista-inventario');
       seleccionados.clear();
       actualizarBarraAcciones();
-
-      const remoto = await obtenerInventarioRemoto();
-      if (remoto) inventarioCache = remoto;
 
       // Mezcla con lo que todavía está pendiente de sincronizar (para no "perder" lo recién capturado)
       const pendientesInsert = obtenerCola().filter(o => o.tipo === 'insert').map(o => ({ ...o.payload, _pendiente: true }));
@@ -715,8 +725,17 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       const items = [...inventarioCache, ...pendientesInsert.filter(p => !idsCache.has(p.id))];
 
       let filtrados = items;
-      if (filtro === 'en_acopio') filtrados = items.filter(d => d.estado !== 'enviado');
-      if (filtro === 'enviado') filtrados = items.filter(d => d.estado === 'enviado');
+      if (filtro === 'en_acopio') filtrados = filtrados.filter(d => d.estado !== 'enviado');
+      if (filtro === 'enviado') filtrados = filtrados.filter(d => d.estado === 'enviado');
+
+      if (terminoBusqueda) {
+        const t = terminoBusqueda.toLowerCase();
+        filtrados = filtrados.filter(d =>
+          (d.descripcion || '').toLowerCase().includes(t) ||
+          (d.lote || '').toLowerCase().includes(t) ||
+          (d.destino || '').toLowerCase().includes(t)
+        );
+      }
 
       if (filtrados.length === 0) {
         lista.innerHTML = `<div class="text-center text-gray-400 text-sm py-10">No hay bultos en esta vista.</div>`;
@@ -761,6 +780,11 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       });
     }
 
+    document.getElementById('buscador-inventario').addEventListener('input', (e) => {
+      terminoBusqueda = e.target.value;
+      dibujarInventario(filtroActual);
+    });
+
     document.querySelectorAll('.filtro-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         filtroActual = btn.getAttribute('data-filtro');
@@ -768,11 +792,11 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
           b.className = 'filtro-btn flex-1 text-xs font-bold py-2 rounded-lg bg-gray-100 text-gray-500 transition-colors';
         });
         btn.className = 'filtro-btn flex-1 text-xs font-bold py-2 rounded-lg bg-blue-600 text-white transition-colors';
-        renderInventario(filtroActual);
+        actualizarInventario(filtroActual);
       });
     });
 
-    document.getElementById('btn-refresh-inv').onclick = () => renderInventario(filtroActual);
+    document.getElementById('btn-refresh-inv').onclick = () => actualizarInventario(filtroActual);
 
     function actualizarBarraAcciones() {
       const barra = document.getElementById('barra-acciones');
@@ -830,7 +854,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
 
       document.getElementById('modal-envio').classList.add('hidden');
       seleccionados.clear();
-      renderInventario(filtroActual);
+      actualizarInventario(filtroActual);
     };
 
     // ============================================================
