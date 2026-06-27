@@ -457,6 +457,15 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       }
     };
 
+    async function cargarEsAdmin() {
+      try {
+        const { data, error } = await sb.from('voluntarios_autorizados').select('es_admin').maybeSingle();
+        esAdmin = !error && !!data?.es_admin;
+      } catch (_e) {
+        esAdmin = false;
+      }
+    }
+
     async function mostrarAppPrivada() {
       document.getElementById('panel-validacion').classList.add('hidden');
       document.getElementById('panel-crear-centro').classList.add('hidden');
@@ -464,6 +473,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
       document.getElementById('panel-registrar').classList.remove('hidden');
       await cargarMiCentro();
+      await cargarEsAdmin();
       iniciarColaSync();
     }
 
