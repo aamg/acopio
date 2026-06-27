@@ -137,6 +137,17 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
           </div>
         </div>
 
+        <hr class="border-gray-100">
+
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Donante (opcional)</label>
+          <input type="text" id="input-donante" placeholder="Ej: Juan Pérez, Anónimo..." class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Observaciones (opcional)</label>
+          <input type="text" id="input-observaciones" placeholder="Ej: Todo sellado, revisar vencimiento..." class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+        </div>
+
         <button type="button" id="btn-guardar" class="w-full bg-blue-600 text-white font-bold text-lg py-4 rounded-xl shadow-md active:scale-95 transition-transform mt-2">
           Registrar Donativo
         </button>
@@ -153,7 +164,10 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     <section id="panel-inventario" class="panel hidden space-y-4">
       <div class="flex justify-between items-center px-1">
         <h2 class="text-lg font-bold text-gray-800">Inventario Actual</h2>
-        <button id="btn-refresh-inv" class="text-sm bg-white border px-3 py-1 rounded-lg font-semibold shadow-sm active:bg-gray-100">↻ Actualizar</button>
+        <div class="flex gap-2">
+          <button id="btn-exportar-csv" class="text-sm bg-white border px-3 py-1 rounded-lg font-semibold shadow-sm active:bg-gray-100">⬇️ CSV</button>
+          <button id="btn-refresh-inv" class="text-sm bg-white border px-3 py-1 rounded-lg font-semibold shadow-sm active:bg-gray-100">↻ Actualizar</button>
+        </div>
       </div>
 
       <div id="pendientes-badge" class="hidden bg-yellow-50 border border-yellow-200 text-yellow-700 text-xs font-semibold px-3 py-2 rounded-xl">
@@ -314,9 +328,11 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       { id: 'ropa', icon: '👕', label: 'Ropa', color: 'bg-blue-50 text-blue-700 border-blue-200' },
       { id: 'herramientas',icon: '🔨', label: 'Herram.', color: 'bg-orange-50 text-orange-700 border-orange-200' },
       { id: 'higiene', icon: '🧼', label: 'Higiene', color: 'bg-teal-50 text-teal-700 border-teal-200' },
+      { id: 'juguetes', icon: '🧸', label: 'Juguetes', color: 'bg-purple-50 text-purple-700 border-purple-200' },
+      { id: 'lenceria', icon: '🛏️', label: 'Lencería', color: 'bg-pink-50 text-pink-700 border-pink-200' },
       { id: 'otros', icon: '📦', label: 'Otros', color: 'bg-gray-100 text-gray-700 border-gray-300' }
     ];
-    const PREFIJOS_LOTE = { medicinas: 'MED', alimentos: 'ALI', ropa: 'ROP', herramientas: 'HER', higiene: 'HIG', otros: 'OTR' };
+    const PREFIJOS_LOTE = { medicinas: 'MED', alimentos: 'ALI', ropa: 'ROP', herramientas: 'HER', higiene: 'HIG', juguetes: 'JUG', lenceria: 'LEN', otros: 'OTR' };
     function generarLote(catId) {
       const prefijo = PREFIJOS_LOTE[catId] || 'GEN';
       return `${prefijo}-${Date.now().toString().slice(-5)}`;
@@ -626,6 +642,10 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
               <select id="input-genero" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm"><option>Unisex</option><option>Mujer</option><option>Hombre</option></select>
             </div>
           </div>`;
+      } else if (id === 'lenceria') {
+        camposEspecificos.innerHTML = basico + `
+          <label class="block text-xs font-bold text-gray-500 mt-3 mb-1 uppercase">Tamaño de cama</label>
+          <select id="input-talla" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm"><option>Individual</option><option>Matrimonial</option><option>Queen</option><option>King</option></select>`;
       } else {
         camposEspecificos.innerHTML = basico;
       }
@@ -739,6 +759,8 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         requiere_frio: document.getElementById('input-frio') ? document.getElementById('input-frio').checked : false,
         talla: document.getElementById('input-talla') ? document.getElementById('input-talla').value : null,
         genero: document.getElementById('input-genero') ? document.getElementById('input-genero').value : null,
+        donante: document.getElementById('input-donante').value.trim() || null,
+        observaciones: document.getElementById('input-observaciones').value.trim() || null,
         estado: 'en_acopio',
       };
 
@@ -761,6 +783,8 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       });
       catSeleccionada = null;
       document.getElementById('input-qty').value = 1;
+      document.getElementById('input-donante').value = '';
+      document.getElementById('input-observaciones').value = '';
     };
 
     // ============================================================
@@ -803,11 +827,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     }
 
     // Solo filtra y pinta lo que ya está en memoria — instantáneo, ideal para el buscador
-    function dibujarInventario(filtro = filtroActual) {
-      const lista = document.getElementById('lista-inventario');
-      seleccionados.clear();
-      actualizarBarraAcciones();
-
+    function obtenerItemsFiltrados(filtro = filtroActual) {
       // Mezcla con lo que todavía está pendiente de sincronizar (para no "perder" lo recién capturado)
       const pendientesInsert = obtenerCola().filter(o => o.tipo === 'insert').map(o => ({ ...o.payload, _pendiente: true }));
       const idsCache = new Set(inventarioCache.map(d => d.id));
@@ -822,9 +842,19 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         filtrados = filtrados.filter(d =>
           (d.descripcion || '').toLowerCase().includes(t) ||
           (d.lote || '').toLowerCase().includes(t) ||
-          (d.destino || '').toLowerCase().includes(t)
+          (d.destino || '').toLowerCase().includes(t) ||
+          (d.donante || '').toLowerCase().includes(t)
         );
       }
+      return filtrados;
+    }
+
+    function dibujarInventario(filtro = filtroActual) {
+      const lista = document.getElementById('lista-inventario');
+      seleccionados.clear();
+      actualizarBarraAcciones();
+
+      const filtrados = obtenerItemsFiltrados(filtro);
 
       if (filtrados.length === 0) {
         lista.innerHTML = `<div class="text-center text-gray-400 text-sm py-10">No hay bultos en esta vista.</div>`;
@@ -848,14 +878,16 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
                     <p class="text-xs text-gray-500">${d.cantidad} ${d.unidad} · Lote ${d.lote || '—'}</p>
                   </div>
                 </div>
-                <span class="text-[10px] font-mono text-gray-400 shrink-0">${d._pendiente ? '⏳' : ''}</span>
+                <span class="text-[10px] font-mono text-gray-400 shrink-0">${d._pendiente ? '⏳' : (d.creado_en ? new Date(d.creado_en).toLocaleString('es-VE', {dateStyle:'short', timeStyle:'short'}) : '')}</span>
               </div>
               <div class="flex flex-wrap gap-1 mt-2">
                 ${d.requiere_frio ? `<span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">❄️ Frío</span>` : ''}
                 ${d.vencimiento ? `<span class="text-[10px] font-bold bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-full">⏳ ${d.vencimiento}</span>` : ''}
                 ${d.talla ? `<span class="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">${d.talla}</span>` : ''}
+                ${d.donante ? `<span class="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">🙋 ${d.donante}</span>` : ''}
                 ${enviado ? `<span class="text-[10px] font-bold bg-green-50 text-green-700 px-2 py-0.5 rounded-full">✅ Enviado a ${d.destino}</span>` : ''}
               </div>
+              ${d.observaciones ? `<p class="text-xs text-gray-500 italic mt-1">"${d.observaciones}"</p>` : ''}
             </div>
           </div>`;
       }).join('');
@@ -886,6 +918,47 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     });
 
     document.getElementById('btn-refresh-inv').onclick = () => actualizarInventario(filtroActual);
+
+    function escaparCSV(valor) {
+      const texto = (valor === null || valor === undefined) ? '' : String(valor);
+      if (/[",\n]/.test(texto)) return '"' + texto.replace(/"/g, '""') + '"';
+      return texto;
+    }
+
+    document.getElementById('btn-exportar-csv').onclick = () => {
+      const items = obtenerItemsFiltrados(filtroActual);
+      if (items.length === 0) { alert('No hay artículos en esta vista para exportar.'); return; }
+
+      const encabezados = ['Fecha', 'Hora', 'Categoria', 'Descripcion', 'Cantidad', 'Unidad', 'Lote', 'Donante', 'Estado', 'Destino', 'Observaciones'];
+      const filas = items.map(d => {
+        const fecha = d.creado_en ? new Date(d.creado_en) : null;
+        return [
+          fecha ? fecha.toLocaleDateString('es-VE') : '',
+          fecha ? fecha.toLocaleTimeString('es-VE') : '',
+          d.categoria || '',
+          d.descripcion || '',
+          d.cantidad ?? '',
+          d.unidad || '',
+          d.lote || '',
+          d.donante || '',
+          d.estado === 'enviado' ? 'Enviado' : 'En Acopio',
+          d.destino || '',
+          d.observaciones || '',
+        ].map(escaparCSV).join(',');
+      });
+
+      const csv = '\uFEFF' + [encabezados.join(','), ...filas].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const fechaArchivo = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `inventario_acopio_${fechaArchivo}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
 
     function actualizarBarraAcciones() {
       const barra = document.getElementById('barra-acciones');
