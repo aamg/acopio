@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Acopio Móvil</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback" async defer></script>
   <script>
   /* Librería QRCode.js incrustada directamente (sin depender de internet para generar el QR) */
 var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this.parsedData=[];for(var b=[],d=0,e=this.data.length;e>d;d++){var f=this.data.charCodeAt(d);f>65536?(b[0]=240|(1835008&f)>>>18,b[1]=128|(258048&f)>>>12,b[2]=128|(4032&f)>>>6,b[3]=128|63&f):f>2048?(b[0]=224|(61440&f)>>>12,b[1]=128|(4032&f)>>>6,b[2]=128|63&f):f>128?(b[0]=192|(1984&f)>>>6,b[1]=128|63&f):b[0]=f,this.parsedData=this.parsedData.concat(b)}this.parsedData.length!=this.data.length&&(this.parsedData.unshift(191),this.parsedData.unshift(187),this.parsedData.unshift(239))}function b(a,b){this.typeNumber=a,this.errorCorrectLevel=b,this.modules=null,this.moduleCount=0,this.dataCache=null,this.dataList=[]}function i(a,b){if(void 0==a.length)throw new Error(a.length+"/"+b);for(var c=0;c<a.length&&0==a[c];)c++;this.num=new Array(a.length-c+b);for(var d=0;d<a.length-c;d++)this.num[d]=a[d+c]}function j(a,b){this.totalCount=a,this.dataCount=b}function k(){this.buffer=[],this.length=0}function m(){return"undefined"!=typeof CanvasRenderingContext2D}function n(){var a=!1,b=navigator.userAgent;return/android/i.test(b)&&(a=!0,aMat=b.toString().match(/android ([0-9]\.[0-9])/i),aMat&&aMat[1]&&(a=parseFloat(aMat[1]))),a}function r(a,b){for(var c=1,e=s(a),f=0,g=l.length;g>=f;f++){var h=0;switch(b){case d.L:h=l[f][0];break;case d.M:h=l[f][1];break;case d.Q:h=l[f][2];break;case d.H:h=l[f][3]}if(h>=e)break;c++}if(c>l.length)throw new Error("Too long data");return c}function s(a){var b=encodeURI(a).toString().replace(/\%[0-9a-fA-F]{2}/g,"a");return b.length+(b.length!=a?3:0)}a.prototype={getLength:function(){return this.parsedData.length},write:function(a){for(var b=0,c=this.parsedData.length;c>b;b++)a.put(this.parsedData[b],8)}},b.prototype={addData:function(b){var c=new a(b);this.dataList.push(c),this.dataCache=null},isDark:function(a,b){if(0>a||this.moduleCount<=a||0>b||this.moduleCount<=b)throw new Error(a+","+b);return this.modules[a][b]},getModuleCount:function(){return this.moduleCount},make:function(){this.makeImpl(!1,this.getBestMaskPattern())},makeImpl:function(a,c){this.moduleCount=4*this.typeNumber+17,this.modules=new Array(this.moduleCount);for(var d=0;d<this.moduleCount;d++){this.modules[d]=new Array(this.moduleCount);for(var e=0;e<this.moduleCount;e++)this.modules[d][e]=null}this.setupPositionProbePattern(0,0),this.setupPositionProbePattern(this.moduleCount-7,0),this.setupPositionProbePattern(0,this.moduleCount-7),this.setupPositionAdjustPattern(),this.setupTimingPattern(),this.setupTypeInfo(a,c),this.typeNumber>=7&&this.setupTypeNumber(a),null==this.dataCache&&(this.dataCache=b.createData(this.typeNumber,this.errorCorrectLevel,this.dataList)),this.mapData(this.dataCache,c)},setupPositionProbePattern:function(a,b){for(var c=-1;7>=c;c++)if(!(-1>=a+c||this.moduleCount<=a+c))for(var d=-1;7>=d;d++)-1>=b+d||this.moduleCount<=b+d||(this.modules[a+c][b+d]=c>=0&&6>=c&&(0==d||6==d)||d>=0&&6>=d&&(0==c||6==c)||c>=2&&4>=c&&d>=2&&4>=d?!0:!1)},getBestMaskPattern:function(){for(var a=0,b=0,c=0;8>c;c++){this.makeImpl(!0,c);var d=f.getLostPoint(this);(0==c||a>d)&&(a=d,b=c)}return b},createMovieClip:function(a,b,c){var d=a.createEmptyMovieClip(b,c),e=1;this.make();for(var f=0;f<this.modules.length;f++)for(var g=f*e,h=0;h<this.modules[f].length;h++){var i=h*e,j=this.modules[f][h];j&&(d.beginFill(0,100),d.moveTo(i,g),d.lineTo(i+e,g),d.lineTo(i+e,g+e),d.lineTo(i,g+e),d.endFill())}return d},setupTimingPattern:function(){for(var a=8;a<this.moduleCount-8;a++)null==this.modules[a][6]&&(this.modules[a][6]=0==a%2);for(var b=8;b<this.moduleCount-8;b++)null==this.modules[6][b]&&(this.modules[6][b]=0==b%2)},setupPositionAdjustPattern:function(){for(var a=f.getPatternPosition(this.typeNumber),b=0;b<a.length;b++)for(var c=0;c<a.length;c++){var d=a[b],e=a[c];if(null==this.modules[d][e])for(var g=-2;2>=g;g++)for(var h=-2;2>=h;h++)this.modules[d+g][e+h]=-2==g||2==g||-2==h||2==h||0==g&&0==h?!0:!1}},setupTypeNumber:function(a){for(var b=f.getBCHTypeNumber(this.typeNumber),c=0;18>c;c++){var d=!a&&1==(1&b>>c);this.modules[Math.floor(c/3)][c%3+this.moduleCount-8-3]=d}for(var c=0;18>c;c++){var d=!a&&1==(1&b>>c);this.modules[c%3+this.moduleCount-8-3][Math.floor(c/3)]=d}},setupTypeInfo:function(a,b){for(var c=this.errorCorrectLevel<<3|b,d=f.getBCHTypeInfo(c),e=0;15>e;e++){var g=!a&&1==(1&d>>e);6>e?this.modules[e][8]=g:8>e?this.modules[e+1][8]=g:this.modules[this.moduleCount-15+e][8]=g}for(var e=0;15>e;e++){var g=!a&&1==(1&d>>e);8>e?this.modules[8][this.moduleCount-e-1]=g:9>e?this.modules[8][15-e-1+1]=g:this.modules[8][15-e-1]=g}this.modules[this.moduleCount-8][8]=!a},mapData:function(a,b){for(var c=-1,d=this.moduleCount-1,e=7,g=0,h=this.moduleCount-1;h>0;h-=2)for(6==h&&h--;;){for(var i=0;2>i;i++)if(null==this.modules[d][h-i]){var j=!1;g<a.length&&(j=1==(1&a[g]>>>e));var k=f.getMask(b,d,h-i);k&&(j=!j),this.modules[d][h-i]=j,e--,-1==e&&(g++,e=7)}if(d+=c,0>d||this.moduleCount<=d){d-=c,c=-c;break}}}},b.PAD0=236,b.PAD1=17,b.createData=function(a,c,d){for(var e=j.getRSBlocks(a,c),g=new k,h=0;h<d.length;h++){var i=d[h];g.put(i.mode,4),g.put(i.getLength(),f.getLengthInBits(i.mode,a)),i.write(g)}for(var l=0,h=0;h<e.length;h++)l+=e[h].dataCount;if(g.getLengthInBits()>8*l)throw new Error("code length overflow. ("+g.getLengthInBits()+">"+8*l+")");for(g.getLengthInBits()+4<=8*l&&g.put(0,4);0!=g.getLengthInBits()%8;)g.putBit(!1);for(;;){if(g.getLengthInBits()>=8*l)break;if(g.put(b.PAD0,8),g.getLengthInBits()>=8*l)break;g.put(b.PAD1,8)}return b.createBytes(g,e)},b.createBytes=function(a,b){for(var c=0,d=0,e=0,g=new Array(b.length),h=new Array(b.length),j=0;j<b.length;j++){var k=b[j].dataCount,l=b[j].totalCount-k;d=Math.max(d,k),e=Math.max(e,l),g[j]=new Array(k);for(var m=0;m<g[j].length;m++)g[j][m]=255&a.buffer[m+c];c+=k;var n=f.getErrorCorrectPolynomial(l),o=new i(g[j],n.getLength()-1),p=o.mod(n);h[j]=new Array(n.getLength()-1);for(var m=0;m<h[j].length;m++){var q=m+p.getLength()-h[j].length;h[j][m]=q>=0?p.get(q):0}}for(var r=0,m=0;m<b.length;m++)r+=b[m].totalCount;for(var s=new Array(r),t=0,m=0;d>m;m++)for(var j=0;j<b.length;j++)m<g[j].length&&(s[t++]=g[j][m]);for(var m=0;e>m;m++)for(var j=0;j<b.length;j++)m<h[j].length&&(s[t++]=h[j][m]);return s};for(var c={MODE_NUMBER:1,MODE_ALPHA_NUM:2,MODE_8BIT_BYTE:4,MODE_KANJI:8},d={L:1,M:0,Q:3,H:2},e={PATTERN000:0,PATTERN001:1,PATTERN010:2,PATTERN011:3,PATTERN100:4,PATTERN101:5,PATTERN110:6,PATTERN111:7},f={PATTERN_POSITION_TABLE:[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],G15:1335,G18:7973,G15_MASK:21522,getBCHTypeInfo:function(a){for(var b=a<<10;f.getBCHDigit(b)-f.getBCHDigit(f.G15)>=0;)b^=f.G15<<f.getBCHDigit(b)-f.getBCHDigit(f.G15);return(a<<10|b)^f.G15_MASK},getBCHTypeNumber:function(a){for(var b=a<<12;f.getBCHDigit(b)-f.getBCHDigit(f.G18)>=0;)b^=f.G18<<f.getBCHDigit(b)-f.getBCHDigit(f.G18);return a<<12|b},getBCHDigit:function(a){for(var b=0;0!=a;)b++,a>>>=1;return b},getPatternPosition:function(a){return f.PATTERN_POSITION_TABLE[a-1]},getMask:function(a,b,c){switch(a){case e.PATTERN000:return 0==(b+c)%2;case e.PATTERN001:return 0==b%2;case e.PATTERN010:return 0==c%3;case e.PATTERN011:return 0==(b+c)%3;case e.PATTERN100:return 0==(Math.floor(b/2)+Math.floor(c/3))%2;case e.PATTERN101:return 0==b*c%2+b*c%3;case e.PATTERN110:return 0==(b*c%2+b*c%3)%2;case e.PATTERN111:return 0==(b*c%3+(b+c)%2)%2;default:throw new Error("bad maskPattern:"+a)}},getErrorCorrectPolynomial:function(a){for(var b=new i([1],0),c=0;a>c;c++)b=b.multiply(new i([1,g.gexp(c)],0));return b},getLengthInBits:function(a,b){if(b>=1&&10>b)switch(a){case c.MODE_NUMBER:return 10;case c.MODE_ALPHA_NUM:return 9;case c.MODE_8BIT_BYTE:return 8;case c.MODE_KANJI:return 8;default:throw new Error("mode:"+a)}else if(27>b)switch(a){case c.MODE_NUMBER:return 12;case c.MODE_ALPHA_NUM:return 11;case c.MODE_8BIT_BYTE:return 16;case c.MODE_KANJI:return 10;default:throw new Error("mode:"+a)}else{if(!(41>b))throw new Error("type:"+b);switch(a){case c.MODE_NUMBER:return 14;case c.MODE_ALPHA_NUM:return 13;case c.MODE_8BIT_BYTE:return 16;case c.MODE_KANJI:return 12;default:throw new Error("mode:"+a)}}},getLostPoint:function(a){for(var b=a.getModuleCount(),c=0,d=0;b>d;d++)for(var e=0;b>e;e++){for(var f=0,g=a.isDark(d,e),h=-1;1>=h;h++)if(!(0>d+h||d+h>=b))for(var i=-1;1>=i;i++)0>e+i||e+i>=b||(0!=h||0!=i)&&g==a.isDark(d+h,e+i)&&f++;f>5&&(c+=3+f-5)}for(var d=0;b-1>d;d++)for(var e=0;b-1>e;e++){var j=0;a.isDark(d,e)&&j++,a.isDark(d+1,e)&&j++,a.isDark(d,e+1)&&j++,a.isDark(d+1,e+1)&&j++,(0==j||4==j)&&(c+=3)}for(var d=0;b>d;d++)for(var e=0;b-6>e;e++)a.isDark(d,e)&&!a.isDark(d,e+1)&&a.isDark(d,e+2)&&a.isDark(d,e+3)&&a.isDark(d,e+4)&&!a.isDark(d,e+5)&&a.isDark(d,e+6)&&(c+=40);for(var e=0;b>e;e++)for(var d=0;b-6>d;d++)a.isDark(d,e)&&!a.isDark(d+1,e)&&a.isDark(d+2,e)&&a.isDark(d+3,e)&&a.isDark(d+4,e)&&!a.isDark(d+5,e)&&a.isDark(d+6,e)&&(c+=40);for(var k=0,e=0;b>e;e++)for(var d=0;b>d;d++)a.isDark(d,e)&&k++;var l=Math.abs(100*k/b/b-50)/5;return c+=10*l}},g={glog:function(a){if(1>a)throw new Error("glog("+a+")");return g.LOG_TABLE[a]},gexp:function(a){for(;0>a;)a+=255;for(;a>=256;)a-=255;return g.EXP_TABLE[a]},EXP_TABLE:new Array(256),LOG_TABLE:new Array(256)},h=0;8>h;h++)g.EXP_TABLE[h]=1<<h;for(var h=8;256>h;h++)g.EXP_TABLE[h]=g.EXP_TABLE[h-4]^g.EXP_TABLE[h-5]^g.EXP_TABLE[h-6]^g.EXP_TABLE[h-8];for(var h=0;255>h;h++)g.LOG_TABLE[g.EXP_TABLE[h]]=h;i.prototype={get:function(a){return this.num[a]},getLength:function(){return this.num.length},multiply:function(a){for(var b=new Array(this.getLength()+a.getLength()-1),c=0;c<this.getLength();c++)for(var d=0;d<a.getLength();d++)b[c+d]^=g.gexp(g.glog(this.get(c))+g.glog(a.get(d)));return new i(b,0)},mod:function(a){if(this.getLength()-a.getLength()<0)return this;for(var b=g.glog(this.get(0))-g.glog(a.get(0)),c=new Array(this.getLength()),d=0;d<this.getLength();d++)c[d]=this.get(d);for(var d=0;d<a.getLength();d++)c[d]^=g.gexp(g.glog(a.get(d))+b);return new i(c,0).mod(a)}},j.RS_BLOCK_TABLE=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],j.getRSBlocks=function(a,b){var c=j.getRsBlockTable(a,b);if(void 0==c)throw new Error("bad rs block @ typeNumber:"+a+"/errorCorrectLevel:"+b);for(var d=c.length/3,e=[],f=0;d>f;f++)for(var g=c[3*f+0],h=c[3*f+1],i=c[3*f+2],k=0;g>k;k++)e.push(new j(h,i));return e},j.getRsBlockTable=function(a,b){switch(b){case d.L:return j.RS_BLOCK_TABLE[4*(a-1)+0];case d.M:return j.RS_BLOCK_TABLE[4*(a-1)+1];case d.Q:return j.RS_BLOCK_TABLE[4*(a-1)+2];case d.H:return j.RS_BLOCK_TABLE[4*(a-1)+3];default:return void 0}},k.prototype={get:function(a){var b=Math.floor(a/8);return 1==(1&this.buffer[b]>>>7-a%8)},put:function(a,b){for(var c=0;b>c;c++)this.putBit(1==(1&a>>>b-c-1))},getLengthInBits:function(){return this.length},putBit:function(a){var b=Math.floor(this.length/8);this.buffer.length<=b&&this.buffer.push(0),a&&(this.buffer[b]|=128>>>this.length%8),this.length++}};var l=[[17,14,11,7],[32,26,20,14],[53,42,32,24],[78,62,46,34],[106,84,60,44],[134,106,74,58],[154,122,86,64],[192,152,108,84],[230,180,130,98],[271,213,151,119],[321,251,177,137],[367,287,203,155],[425,331,241,177],[458,362,258,194],[520,412,292,220],[586,450,322,250],[644,504,364,280],[718,560,394,310],[792,624,442,338],[858,666,482,382],[929,711,509,403],[1003,779,565,439],[1091,857,611,461],[1171,911,661,511],[1273,997,715,535],[1367,1059,751,593],[1465,1125,805,625],[1528,1190,868,658],[1628,1264,908,698],[1732,1370,982,742],[1840,1452,1030,790],[1952,1538,1112,842],[2068,1628,1168,898],[2188,1722,1228,958],[2303,1809,1283,983],[2431,1911,1351,1051],[2563,1989,1423,1093],[2699,2099,1499,1139],[2809,2213,1579,1219],[2953,2331,1663,1273]],o=function(){var a=function(a,b){this._el=a,this._htOption=b};return a.prototype.draw=function(a){function g(a,b){var c=document.createElementNS("http://www.w3.org/2000/svg",a);for(var d in b)b.hasOwnProperty(d)&&c.setAttribute(d,b[d]);return c}var b=this._htOption,c=this._el,d=a.getModuleCount();Math.floor(b.width/d),Math.floor(b.height/d),this.clear();var h=g("svg",{viewBox:"0 0 "+String(d)+" "+String(d),width:"100%",height:"100%",fill:b.colorLight});h.setAttributeNS("http://www.w3.org/2000/xmlns/","xmlns:xlink","http://www.w3.org/1999/xlink"),c.appendChild(h),h.appendChild(g("rect",{fill:b.colorDark,width:"1",height:"1",id:"template"}));for(var i=0;d>i;i++)for(var j=0;d>j;j++)if(a.isDark(i,j)){var k=g("use",{x:String(i),y:String(j)});k.setAttributeNS("http://www.w3.org/1999/xlink","href","#template"),h.appendChild(k)}},a.prototype.clear=function(){for(;this._el.hasChildNodes();)this._el.removeChild(this._el.lastChild)},a}(),p="svg"===document.documentElement.tagName.toLowerCase(),q=p?o:m()?function(){function a(){this._elImage.src=this._elCanvas.toDataURL("image/png"),this._elImage.style.display="block",this._elCanvas.style.display="none"}function d(a,b){var c=this;if(c._fFail=b,c._fSuccess=a,null===c._bSupportDataURI){var d=document.createElement("img"),e=function(){c._bSupportDataURI=!1,c._fFail&&_fFail.call(c)},f=function(){c._bSupportDataURI=!0,c._fSuccess&&c._fSuccess.call(c)};return d.onabort=e,d.onerror=e,d.onload=f,d.src="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",void 0}c._bSupportDataURI===!0&&c._fSuccess?c._fSuccess.call(c):c._bSupportDataURI===!1&&c._fFail&&c._fFail.call(c)}if(this._android&&this._android<=2.1){var b=1/window.devicePixelRatio,c=CanvasRenderingContext2D.prototype.drawImage;CanvasRenderingContext2D.prototype.drawImage=function(a,d,e,f,g,h,i,j){if("nodeName"in a&&/img/i.test(a.nodeName))for(var l=arguments.length-1;l>=1;l--)arguments[l]=arguments[l]*b;else"undefined"==typeof j&&(arguments[1]*=b,arguments[2]*=b,arguments[3]*=b,arguments[4]*=b);c.apply(this,arguments)}}var e=function(a,b){this._bIsPainted=!1,this._android=n(),this._htOption=b,this._elCanvas=document.createElement("canvas"),this._elCanvas.width=b.width,this._elCanvas.height=b.height,a.appendChild(this._elCanvas),this._el=a,this._oContext=this._elCanvas.getContext("2d"),this._bIsPainted=!1,this._elImage=document.createElement("img"),this._elImage.style.display="none",this._el.appendChild(this._elImage),this._bSupportDataURI=null};return e.prototype.draw=function(a){var b=this._elImage,c=this._oContext,d=this._htOption,e=a.getModuleCount(),f=d.width/e,g=d.height/e,h=Math.round(f),i=Math.round(g);b.style.display="none",this.clear();for(var j=0;e>j;j++)for(var k=0;e>k;k++){var l=a.isDark(j,k),m=k*f,n=j*g;c.strokeStyle=l?d.colorDark:d.colorLight,c.lineWidth=1,c.fillStyle=l?d.colorDark:d.colorLight,c.fillRect(m,n,f,g),c.strokeRect(Math.floor(m)+.5,Math.floor(n)+.5,h,i),c.strokeRect(Math.ceil(m)-.5,Math.ceil(n)-.5,h,i)}this._bIsPainted=!0},e.prototype.makeImage=function(){this._bIsPainted&&d.call(this,a)},e.prototype.isPainted=function(){return this._bIsPainted},e.prototype.clear=function(){this._oContext.clearRect(0,0,this._elCanvas.width,this._elCanvas.height),this._bIsPainted=!1},e.prototype.round=function(a){return a?Math.floor(1e3*a)/1e3:a},e}():function(){var a=function(a,b){this._el=a,this._htOption=b};return a.prototype.draw=function(a){for(var b=this._htOption,c=this._el,d=a.getModuleCount(),e=Math.floor(b.width/d),f=Math.floor(b.height/d),g=['<table style="border:0;border-collapse:collapse;">'],h=0;d>h;h++){g.push("<tr>");for(var i=0;d>i;i++)g.push('<td style="border:0;border-collapse:collapse;padding:0;margin:0;width:'+e+"px;height:"+f+"px;background-color:"+(a.isDark(h,i)?b.colorDark:b.colorLight)+';"></td>');g.push("</tr>")}g.push("</table>"),c.innerHTML=g.join("");var j=c.childNodes[0],k=(b.width-j.offsetWidth)/2,l=(b.height-j.offsetHeight)/2;k>0&&l>0&&(j.style.margin=l+"px "+k+"px")},a.prototype.clear=function(){this._el.innerHTML=""},a}();QRCode=function(a,b){if(this._htOption={width:256,height:256,typeNumber:4,colorDark:"#000000",colorLight:"#ffffff",correctLevel:d.H},"string"==typeof b&&(b={text:b}),b)for(var c in b)this._htOption[c]=b[c];"string"==typeof a&&(a=document.getElementById(a)),this._android=n(),this._el=a,this._oQRCode=null,this._oDrawing=new q(this._el,this._htOption),this._htOption.text&&this.makeCode(this._htOption.text)},QRCode.prototype.makeCode=function(a){this._oQRCode=new b(r(a,this._htOption.correctLevel),this._htOption.correctLevel),this._oQRCode.addData(a),this._oQRCode.make(),this._el.title=a,this._oDrawing.draw(this._oQRCode),this.makeImage()},QRCode.prototype.makeImage=function(){"function"==typeof this._oDrawing.makeImage&&(!this._android||this._android>=3)&&this._oDrawing.makeImage()},QRCode.prototype.clear=function(){this._oDrawing.clear()},QRCode.CorrectLevel=d}();
@@ -23,8 +25,8 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   <header class="bg-blue-900 text-white p-4 sticky top-0 z-50 shadow-md">
     <div class="flex justify-between items-center">
       <div class="flex-1 min-w-0 pr-2">
-        <h1 class="font-bold leading-tight truncate text-lg" id="ui-centro-nombre">Configura tu Acopio</h1>
-        <p class="text-xs text-blue-200 truncate" id="ui-centro-estado">Ve a la pestaña ⚙️ Config</p>
+        <h1 class="font-bold leading-tight truncate text-lg" id="ui-centro-nombre">Cargando centro...</h1>
+        <p class="text-xs text-blue-200 truncate" id="ui-centro-estado">Conectando con Supabase</p>
       </div>
       <div class="text-right shrink-0 flex flex-col items-end">
         <span class="flex items-center gap-1 text-xs font-semibold text-green-400 bg-blue-950 px-2 py-1 rounded-full">
@@ -37,7 +39,38 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
 
   <main class="p-4 max-w-md mx-auto space-y-4">
 
-    <section id="panel-registrar" class="panel block space-y-4">
+    <!-- ======= MODO PÚBLICO (cuando el link trae ?centro=) ======= -->
+    <section id="panel-publico" class="hidden space-y-4">
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
+        <p class="text-xs text-gray-500">Última actualización</p>
+        <p class="font-bold text-gray-800" id="pub-actualizado">—</p>
+        <button id="btn-refrescar-publico" class="mt-3 text-sm bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold active:scale-95 transition-transform">↻ Actualizar ahora</button>
+      </div>
+      <div id="pub-lista" class="space-y-3"></div>
+    </section>
+
+    <!-- ======= PANTALLA DE VALIDACIÓN (modo privado, sin sesión) ======= -->
+    <section id="panel-validacion" class="hidden space-y-4">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+        <h2 class="font-bold text-gray-800 border-b pb-2">Validación de Voluntario</h2>
+        <p class="text-xs text-gray-500">Ingresa tu cédula y correo para activar el acceso de este dispositivo.</p>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Cédula</label>
+          <input type="text" id="val-cedula" placeholder="Ej: V-12345678" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Correo</label>
+          <input type="email" id="val-correo" placeholder="tu@correo.com" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+        </div>
+        <div id="turnstile-container" class="flex justify-center"></div>
+        <p id="val-error" class="text-sm text-red-500 hidden"></p>
+        <button type="button" id="btn-validar" class="w-full bg-blue-600 text-white font-bold text-lg py-4 rounded-xl shadow-md active:scale-95 transition-transform">
+          Validar y Continuar
+        </button>
+      </div>
+    </section>
+
+    <section id="panel-registrar" class="panel hidden space-y-4">
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
         <h2 class="text-sm font-bold text-gray-500 mb-3 uppercase tracking-wide">1. Categoría</h2>
         <div class="grid grid-cols-3 gap-2" id="grid-categorias">
@@ -73,7 +106,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
 
       <div id="ticket-exito" class="hidden bg-green-50 border border-green-200 p-4 rounded-2xl text-center">
         <div class="text-green-600 text-3xl mb-1">✅</div>
-        <h3 class="font-bold text-green-800 text-lg">Guardado con éxito</h3>
+        <h3 class="font-bold text-green-800 text-lg" id="ticket-titulo">Guardado con éxito</h3>
         <p class="text-xs text-green-600 mt-1">Escribe este código en la caja:</p>
         <div id="ticket-lote" class="text-2xl font-mono font-bold bg-white mt-2 py-2 rounded-lg border border-green-300">MED-12345</div>
       </div>
@@ -83,6 +116,10 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       <div class="flex justify-between items-center px-1">
         <h2 class="text-lg font-bold text-gray-800">Inventario Actual</h2>
         <button id="btn-refresh-inv" class="text-sm bg-white border px-3 py-1 rounded-lg font-semibold shadow-sm active:bg-gray-100">↻ Actualizar</button>
+      </div>
+
+      <div id="pendientes-badge" class="hidden bg-yellow-50 border border-yellow-200 text-yellow-700 text-xs font-semibold px-3 py-2 rounded-xl">
+        ⏳ <span id="pendientes-count">0</span> cambio(s) esperando conexión para sincronizar
       </div>
 
       <div class="flex gap-2 px-1" id="filtros-inventario">
@@ -98,29 +135,32 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     <section id="panel-lista" class="panel hidden space-y-4">
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
         <h2 class="font-bold text-gray-800 mb-2">Código QR del Inventario</h2>
-        <p class="text-xs text-gray-500 mb-6">Muestra este código para compartir la lista pública de lo que hay en este acopio.</p>
+        <p class="text-xs text-gray-500 mb-6">Muestra este código para que cualquiera vea, en vivo, lo que hay en este acopio.</p>
         
         <div id="qr-container" class="bg-white p-2 border-4 border-blue-50 rounded-2xl mb-4"></div>
-        <p id="qr-error" class="text-sm text-red-500 hidden">Necesitas registrar al menos un donativo para generar el QR.</p>
+        <p id="qr-error" class="text-sm text-red-500 hidden">No se pudo generar el QR.</p>
+        <p class="text-[10px] text-gray-400 break-all mt-2" id="qr-link"></p>
       </div>
     </section>
 
     <section id="panel-config" class="panel hidden space-y-4">
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-        <h2 class="font-bold text-gray-800 border-b pb-2">Datos del Centro de Acopio</h2>
+        <h2 class="font-bold text-gray-800 border-b pb-2">Centro de Acopio</h2>
         <div>
-          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Nombre del Lugar</label>
-          <input type="text" id="cfg-nombre" placeholder="Ej: Gimnasio B. Juárez" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+          <p class="text-xs font-bold text-gray-500 uppercase">Nombre</p>
+          <p class="text-gray-800" id="cfg-nombre-display">—</p>
         </div>
         <div>
-          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Estado / Región</label>
-          <select id="cfg-estado" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
-            <option value="">Selecciona...</option>
-            <option>Amazonas</option><option>Anzoátegui</option><option>Apure</option><option>Aragua</option><option>Barinas</option><option>Bolívar</option><option>Carabobo</option><option>Cojedes</option><option>Delta Amacuro</option><option>Distrito Capital</option><option>Falcón</option><option>Guárico</option><option>La Guaira</option><option>Lara</option><option>Mérida</option><option>Miranda</option><option>Monagas</option><option>Nueva Esparta</option><option>Portuguesa</option><option>Sucre</option><option>Táchira</option><option>Trujillo</option><option>Yaracuy</option><option>Zulia</option>
-          </select>
+          <p class="text-xs font-bold text-gray-500 uppercase">Región</p>
+          <p class="text-gray-800" id="cfg-region-display">—</p>
         </div>
-        <button type="button" id="btn-save-cfg" class="w-full bg-gray-800 text-white font-bold py-3 rounded-xl shadow-md active:bg-gray-700">
-          Guardar Configuración
+        <div>
+          <p class="text-xs font-bold text-gray-500 uppercase">Sincronización pendiente</p>
+          <p class="text-gray-800" id="cfg-pendientes-display">0 cambios</p>
+        </div>
+        <p class="text-[10px] text-gray-400">¿Necesitas cambiar el nombre o región del centro? Pídeselo a quien administra la base de datos.</p>
+        <button type="button" id="btn-cerrar-sesion" class="w-full bg-gray-800 text-white font-bold py-3 rounded-xl shadow-md active:bg-gray-700">
+          Cerrar sesión de este dispositivo
         </button>
       </div>
     </section>
@@ -158,7 +198,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     </div>
   </div>
 
-  <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around pb-safe pt-2 px-2 z-50 h-[70px]">
+  <nav id="nav-principal" class="hidden fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around pb-safe pt-2 px-2 z-50 h-[70px]">
     <button data-tab="registrar" class="nav-tab flex-1 flex flex-col items-center justify-center text-blue-600 transition-colors">
       <span class="text-2xl mb-1">📦</span>
       <span class="text-[10px] font-bold">Captura</span>
@@ -178,33 +218,24 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   </nav>
 
   <script>
-    // 1. Configuración y Reloj
+    // ============================================================
+    // 0. CONFIGURACIÓN DEL PROYECTO (valores públicos, seguros de exponer)
+    // ============================================================
+    const SUPABASE_URL = 'https://idatmkmbzdhfnhazmmys.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_FoCHxnWcmwdwMzutiMof3g_zvkRf_Da';
+    const TURNSTILE_SITE_KEY = '0x4AAAAAADryx1lcv9zA3ACw';
+    const CENTRO_ID = '2b763b50-0ea6-49c8-bbbf-561fcc2bea78';
+    const EDGE_FUNCTION_URL = SUPABASE_URL + '/functions/v1/validar-voluntario';
+
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 1. Reloj
     function actualizarReloj() {
       document.getElementById('ui-clock').textContent = new Date().toLocaleTimeString('es-VE', {hour:'2-digit', minute:'2-digit'});
     }
     setInterval(actualizarReloj, 60000); actualizarReloj();
 
-    // 2. Navegación Inferior (Tabs)
-    const tabs = document.querySelectorAll('.nav-tab');
-    const paneles = document.querySelectorAll('.panel');
-    
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        // Estilos de botones
-        tabs.forEach(t => t.classList.replace('text-blue-600', 'text-gray-400'));
-        tab.classList.replace('text-gray-400', 'text-blue-600');
-        // Mostrar panel
-        const destino = tab.getAttribute('data-tab');
-        paneles.forEach(p => p.classList.add('hidden'));
-        document.getElementById(`panel-${destino}`).classList.remove('hidden');
-        
-        // Acciones específicas al entrar a una pestaña
-        if(destino === 'inventario') renderInventario();
-        if(destino === 'lista') generarQR();
-      });
-    });
-
-    // 3. Categorías y UI de Formulario
+    // 2. Categorías (usadas tanto en captura como al renderizar inventario)
     const categorias = [
       { id: 'medicinas', icon: '💊', label: 'Medicinas', color: 'bg-red-50 text-red-700 border-red-200' },
       { id: 'alimentos', icon: '🥫', label: 'Alimentos', color: 'bg-green-50 text-green-700 border-green-200' },
@@ -213,13 +244,198 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       { id: 'higiene', icon: '🧼', label: 'Higiene', color: 'bg-teal-50 text-teal-700 border-teal-200' },
       { id: 'otros', icon: '📦', label: 'Otros', color: 'bg-gray-100 text-gray-700 border-gray-300' }
     ];
+    const PREFIJOS_LOTE = { medicinas: 'MED', alimentos: 'ALI', ropa: 'ROP', herramientas: 'HER', higiene: 'HIG', otros: 'OTR' };
+    function generarLote(catId) {
+      const prefijo = PREFIJOS_LOTE[catId] || 'GEN';
+      return `${prefijo}-${Date.now().toString().slice(-5)}`;
+    }
 
+    // ============================================================
+    // 3. ENCABEZADO: nombre/región del centro (siempre desde Supabase, función pública)
+    // ============================================================
+    async function cargarEncabezado() {
+      try {
+        const { data, error } = await sb.rpc('get_centro_publico', { p_centro_id: CENTRO_ID });
+        const h1 = document.getElementById('ui-centro-nombre');
+        if (!error && data && data[0]) {
+          const nombre = data[0].nombre;
+          h1.textContent = nombre;
+          const tamano = nombre.length > 28 ? 'text-sm' : (nombre.length > 18 ? 'text-base' : 'text-lg');
+          h1.className = `font-bold leading-tight truncate ${tamano}`;
+          document.getElementById('ui-centro-estado').textContent = data[0].region ? `📍 ${data[0].region}` : 'Centro de Acopio Activo';
+          document.getElementById('cfg-nombre-display').textContent = nombre;
+          document.getElementById('cfg-region-display').textContent = data[0].region || '—';
+        } else {
+          h1.textContent = 'Acopio Móvil';
+        }
+      } catch (_e) {
+        document.getElementById('ui-centro-nombre').textContent = 'Acopio Móvil';
+      }
+    }
+
+    // ============================================================
+    // 4. MODO PÚBLICO (?centro=... en la URL) — solo lectura, sin login
+    // ============================================================
+    function formatearFecha(iso) {
+      if (!iso) return '—';
+      return new Date(iso).toLocaleString('es-VE', { dateStyle: 'short', timeStyle: 'short' });
+    }
+
+    async function cargarVistaPublica() {
+      try {
+        const { data, error } = await sb.rpc('get_inventario_publico', { p_centro_id: CENTRO_ID });
+        const lista = document.getElementById('pub-lista');
+        if (error) { lista.innerHTML = `<p class="text-center text-red-500 text-sm">No se pudo cargar el inventario.</p>`; return; }
+
+        if (!data || data.length === 0) {
+          lista.innerHTML = `<p class="text-center text-gray-400 text-sm py-6">Este centro aún no tiene donativos registrados.</p>`;
+          document.getElementById('pub-actualizado').textContent = '—';
+          return;
+        }
+
+        const masReciente = data.reduce((max, d) => {
+          const t = new Date(d.actualizado_en).getTime();
+          return t > max ? t : max;
+        }, 0);
+        document.getElementById('pub-actualizado').textContent = formatearFecha(new Date(masReciente).toISOString());
+
+        lista.innerHTML = data.map(d => {
+          const cat = categorias.find(c => c.id === d.categoria) || categorias[categorias.length - 1];
+          const enviado = d.estado === 'enviado';
+          return `
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 ${enviado ? 'opacity-70' : ''}">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">${cat.icon}</span>
+                <div class="min-w-0">
+                  <p class="font-bold text-gray-800 text-sm truncate">${d.descripcion}</p>
+                  <p class="text-xs text-gray-500">${d.cantidad} ${d.unidad} · Lote ${d.lote || '—'}</p>
+                </div>
+              </div>
+              ${enviado ? `<span class="inline-block mt-2 text-[10px] font-bold bg-green-50 text-green-700 px-2 py-0.5 rounded-full">✅ Enviado a ${d.destino}</span>` : ''}
+            </div>`;
+        }).join('');
+      } catch (_e) {
+        document.getElementById('pub-lista').innerHTML = `<p class="text-center text-red-500 text-sm">Error de conexión.</p>`;
+      }
+    }
+
+    function initModoPublico() {
+      document.getElementById('panel-publico').classList.remove('hidden');
+      document.getElementById('btn-refrescar-publico').onclick = cargarVistaPublica;
+      cargarVistaPublica();
+    }
+
+    // ============================================================
+    // 5. VALIDACIÓN DE VOLUNTARIO (modo privado, sin sesión todavía)
+    // ============================================================
+    let turnstileToken = null;
+    let turnstileWidgetId = null;
+
+    window.onloadTurnstileCallback = function () {
+      turnstileWidgetId = turnstile.render('#turnstile-container', {
+        sitekey: TURNSTILE_SITE_KEY,
+        callback: (token) => { turnstileToken = token; },
+        'expired-callback': () => { turnstileToken = null; },
+      });
+    };
+
+    function mostrarErrorValidacion(msg) {
+      const el = document.getElementById('val-error');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+
+    document.getElementById('btn-validar').onclick = async () => {
+      const cedula = document.getElementById('val-cedula').value.trim();
+      const correo = document.getElementById('val-correo').value.trim();
+      const btn = document.getElementById('btn-validar');
+      document.getElementById('val-error').classList.add('hidden');
+
+      if (!cedula || !correo) { mostrarErrorValidacion('Completa cédula y correo.'); return; }
+      if (!turnstileToken) { mostrarErrorValidacion('Completa la verificación de seguridad.'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Validando...';
+
+      try {
+        const res = await fetch(EDGE_FUNCTION_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cedula, correo, turnstileToken }),
+        });
+        const data = await res.json();
+
+        if (!data.ok) {
+          mostrarErrorValidacion(data.error || 'No se pudo validar.');
+          if (turnstileWidgetId !== null) turnstile.reset(turnstileWidgetId);
+          turnstileToken = null;
+          return;
+        }
+
+        const { error: errSesion } = await sb.auth.setSession({
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+        });
+        if (errSesion) { mostrarErrorValidacion('No se pudo activar la sesión. Intenta de nuevo.'); return; }
+
+        mostrarAppPrivada();
+      } catch (_e) {
+        mostrarErrorValidacion('Error de conexión. Intenta de nuevo.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Validar y Continuar';
+      }
+    };
+
+    function mostrarAppPrivada() {
+      document.getElementById('panel-validacion').classList.add('hidden');
+      document.getElementById('nav-principal').classList.remove('hidden');
+      document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById('panel-registrar').classList.remove('hidden');
+      iniciarColaSync();
+    }
+
+    async function initModoPrivado() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        mostrarAppPrivada();
+      } else {
+        document.getElementById('panel-validacion').classList.remove('hidden');
+      }
+    }
+
+    document.getElementById('btn-cerrar-sesion').onclick = async () => {
+      await sb.auth.signOut();
+      location.reload();
+    };
+
+    // ============================================================
+    // 6. NAVEGACIÓN INFERIOR (solo activa en modo privado)
+    // ============================================================
+    const tabs = document.querySelectorAll('.nav-tab');
+    const paneles = document.querySelectorAll('.panel');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.replace('text-blue-600', 'text-gray-400'));
+        tab.classList.replace('text-gray-400', 'text-blue-600');
+        const destino = tab.getAttribute('data-tab');
+        paneles.forEach(p => p.classList.add('hidden'));
+        document.getElementById(`panel-${destino}`).classList.remove('hidden');
+        if (destino === 'inventario') renderInventario();
+        if (destino === 'lista') generarQR();
+        if (destino === 'config') actualizarPanelConfig();
+      });
+    });
+
+    // ============================================================
+    // 7. CAPTURA: categorías y formulario dinámico
+    // ============================================================
     let catSeleccionada = null;
     const gridCategorias = document.getElementById('grid-categorias');
     const formDinamico = document.getElementById('formulario-dinamico');
     const camposEspecificos = document.getElementById('campos-especificos');
 
-    // Renderizar botones de categoría
     gridCategorias.innerHTML = categorias.map(c => `
       <button type="button" data-cat="${c.id}" class="cat-btn flex flex-col items-center p-3 rounded-xl border-2 border-transparent bg-gray-50 active:bg-gray-200 transition-all">
         <span class="text-3xl mb-1">${c.icon}</span>
@@ -227,20 +443,15 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       </button>
     `).join('');
 
-    // Manejar selección de categoría
     document.querySelectorAll('.cat-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', () => {
         const id = btn.getAttribute('data-cat');
         catSeleccionada = id;
-        
-        // Estilos visuales
         document.querySelectorAll('.cat-btn').forEach(b => {
           b.className = 'cat-btn flex flex-col items-center p-3 rounded-xl border-2 border-transparent bg-gray-50 active:bg-gray-200 transition-all opacity-60';
         });
         const activeCat = categorias.find(c => c.id === id);
         btn.className = `cat-btn flex flex-col items-center p-3 rounded-xl border-2 transition-all opacity-100 shadow-sm ${activeCat.color}`;
-        
-        // Mostrar form y ocultar ticket previo
         document.getElementById('ticket-exito').classList.add('hidden');
         formDinamico.classList.remove('hidden');
         renderCampos(id);
@@ -250,8 +461,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     function renderCampos(id) {
       const basico = `<label class="block text-xs font-bold text-gray-500 mb-1 uppercase">¿Qué es?</label>
                       <input type="text" id="input-desc" placeholder="Descripción del artículo..." class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">`;
-      
-      if(id === 'medicinas') {
+      if (id === 'medicinas') {
         camposEspecificos.innerHTML = basico + `
           <label class="block text-xs font-bold text-gray-500 mt-3 mb-1 uppercase">Vencimiento</label>
           <input type="month" id="input-venc" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none">
@@ -276,59 +486,95 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       }
     }
 
-    // Lógica de + y -
     document.getElementById('btn-restar').onclick = () => { const i = document.getElementById('input-qty'); i.value = Math.max(1, (parseInt(i.value)||1) - 1); };
     document.getElementById('btn-sumar').onclick = () => { const i = document.getElementById('input-qty'); i.value = (parseInt(i.value)||0) + 1; };
 
-    // 4. Base de Datos (LocalStorage Real)
-    function obtenerInventario() {
-      return JSON.parse(localStorage.getItem('acopio_db') || '[]');
+    // ============================================================
+    // 8. COLA DE SINCRONIZACIÓN OFFLINE-FIRST
+    // ============================================================
+    const COLA_KEY = 'acopio_cola_pendientes';
+    function obtenerCola() { return JSON.parse(localStorage.getItem(COLA_KEY) || '[]'); }
+    function guardarCola(cola) { localStorage.setItem(COLA_KEY, JSON.stringify(cola)); }
+    function encolar(operacion) {
+      const cola = obtenerCola();
+      cola.push(operacion);
+      guardarCola(cola);
+      actualizarBadgesPendientes();
     }
-    
-    function guardarDonativo(donativo) {
-      const db = obtenerInventario();
-      db.push(donativo);
-      localStorage.setItem('acopio_db', JSON.stringify(db));
+    function actualizarBadgesPendientes() {
+      const n = obtenerCola().length;
+      const badge = document.getElementById('pendientes-badge');
+      document.getElementById('pendientes-count').textContent = n;
+      document.getElementById('cfg-pendientes-display').textContent = `${n} cambio(s)`;
+      badge.classList.toggle('hidden', n === 0);
     }
 
-    // Prefijos de lote por categoría (se escriben en la caja física)
-    const PREFIJOS_LOTE = { medicinas: 'MED', alimentos: 'ALI', ropa: 'ROP', herramientas: 'HER', higiene: 'HIG', otros: 'OTR' };
-    function generarLote(catId) {
-      const prefijo = PREFIJOS_LOTE[catId] || 'GEN';
-      const sufijo = Date.now().toString().slice(-5);
-      return `${prefijo}-${sufijo}`;
+    async function sincronizarCola() {
+      let cola = obtenerCola();
+      if (cola.length === 0) return;
+
+      const restantes = [];
+      for (const op of cola) {
+        try {
+          if (op.tipo === 'insert') {
+            const { error } = await sb.from('donativos').insert(op.payload);
+            if (error) restantes.push(op);
+          } else if (op.tipo === 'update') {
+            const { error } = await sb.from('donativos').update(op.cambios).eq('id', op.id);
+            if (error) restantes.push(op);
+          }
+        } catch (_e) {
+          restantes.push(op);
+        }
+      }
+      guardarCola(restantes);
+      actualizarBadgesPendientes();
     }
 
-    document.getElementById('btn-guardar').onclick = () => {
+    function iniciarColaSync() {
+      actualizarBadgesPendientes();
+      sincronizarCola();
+      window.addEventListener('online', sincronizarCola);
+      setInterval(sincronizarCola, 30000);
+    }
+
+    // ============================================================
+    // 9. REGISTRAR DONATIVO (escribe a Supabase, encola si no hay internet)
+    // ============================================================
+    document.getElementById('btn-guardar').onclick = async () => {
       const descInput = document.getElementById('input-desc');
-      if(!descInput || !descInput.value.trim()) { alert("Escribe qué estás recibiendo"); return; }
+      if (!descInput || !descInput.value.trim()) { alert('Escribe qué estás recibiendo'); return; }
 
       const lote = generarLote(catSeleccionada);
-
       const donativo = {
-        id: Date.now(),
-        lote: lote,
-        cat: catSeleccionada,
-        desc: descInput.value.trim(),
-        qty: parseInt(document.getElementById('input-qty').value) || 1,
+        id: crypto.randomUUID(),
+        centro_id: CENTRO_ID,
+        categoria: catSeleccionada,
+        descripcion: descInput.value.trim(),
+        cantidad: parseInt(document.getElementById('input-qty').value) || 1,
         unidad: document.getElementById('input-unidad').value,
-        venc: document.getElementById('input-venc') ? document.getElementById('input-venc').value : null,
-        frio: document.getElementById('input-frio') ? document.getElementById('input-frio').checked : false,
+        lote: lote,
+        vencimiento: document.getElementById('input-venc') ? document.getElementById('input-venc').value : null,
+        requiere_frio: document.getElementById('input-frio') ? document.getElementById('input-frio').checked : false,
         talla: document.getElementById('input-talla') ? document.getElementById('input-talla').value : null,
         genero: document.getElementById('input-genero') ? document.getElementById('input-genero').value : null,
         estado: 'en_acopio',
-        destino: null,
-        fechaEnvio: null
       };
 
-      guardarDonativo(donativo);
+      let pendiente = false;
+      try {
+        const { error } = await sb.from('donativos').insert(donativo);
+        if (error) { encolar({ tipo: 'insert', payload: donativo }); pendiente = true; }
+      } catch (_e) {
+        encolar({ tipo: 'insert', payload: donativo });
+        pendiente = true;
+      }
 
-      // Mostrar ticket de éxito con el código de lote real
       document.getElementById('ticket-lote').textContent = lote;
+      document.getElementById('ticket-titulo').textContent = pendiente ? '⏳ Guardado localmente (sin internet)' : 'Guardado con éxito';
       formDinamico.classList.add('hidden');
       document.getElementById('ticket-exito').classList.remove('hidden');
 
-      // Reset visual de categorías y formulario, listo para el próximo registro
       document.querySelectorAll('.cat-btn').forEach(b => {
         b.className = 'cat-btn flex flex-col items-center p-3 rounded-xl border-2 border-transparent bg-gray-50 active:bg-gray-200 transition-all';
       });
@@ -336,53 +582,61 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       document.getElementById('input-qty').value = 1;
     };
 
-    // 5. Destinos de Envío (lista predefinida + opción de agregar nuevos)
+    // ============================================================
+    // 10. INVENTARIO: render, filtros y selección de bultos
+    // ============================================================
     const DESTINOS_KEY = 'acopio_destinos';
     function obtenerDestinos() {
       let destinos = JSON.parse(localStorage.getItem(DESTINOS_KEY) || 'null');
       if (!destinos) {
-        destinos = [
-          'Hospital / Centro de Salud',
-          'Refugio / Albergue Temporal',
-          'Otro Centro de Acopio',
-          'Zona Afectada (reparto directo)'
-        ];
+        destinos = ['Hospital / Centro de Salud', 'Refugio / Albergue Temporal', 'Otro Centro de Acopio', 'Zona Afectada (reparto directo)'];
         localStorage.setItem(DESTINOS_KEY, JSON.stringify(destinos));
       }
       return destinos;
     }
     function guardarNuevoDestino(nombre) {
       const destinos = obtenerDestinos();
-      if (!destinos.includes(nombre)) {
-        destinos.push(nombre);
-        localStorage.setItem(DESTINOS_KEY, JSON.stringify(destinos));
-      }
+      if (!destinos.includes(nombre)) { destinos.push(nombre); localStorage.setItem(DESTINOS_KEY, JSON.stringify(destinos)); }
     }
 
-    // 6. Inventario: render, filtros y selección de bultos
     let filtroActual = 'todos';
     let seleccionados = new Set();
+    let inventarioCache = [];
 
-    function renderInventario(filtro = filtroActual) {
-      const db = obtenerInventario();
+    async function obtenerInventarioRemoto() {
+      const { data, error } = await sb
+        .from('donativos')
+        .select('*')
+        .eq('centro_id', CENTRO_ID)
+        .order('creado_en', { ascending: false });
+      if (error) return null;
+      return data;
+    }
+
+    async function renderInventario(filtro = filtroActual) {
       const lista = document.getElementById('lista-inventario');
       seleccionados.clear();
       actualizarBarraAcciones();
 
-      let items = db;
-      if (filtro === 'en_acopio') items = db.filter(d => d.estado !== 'enviado');
-      if (filtro === 'enviado') items = db.filter(d => d.estado === 'enviado');
+      const remoto = await obtenerInventarioRemoto();
+      if (remoto) inventarioCache = remoto;
 
-      if (items.length === 0) {
+      // Mezcla con lo que todavía está pendiente de sincronizar (para no "perder" lo recién capturado)
+      const pendientesInsert = obtenerCola().filter(o => o.tipo === 'insert').map(o => ({ ...o.payload, _pendiente: true }));
+      const idsCache = new Set(inventarioCache.map(d => d.id));
+      const items = [...inventarioCache, ...pendientesInsert.filter(p => !idsCache.has(p.id))];
+
+      let filtrados = items;
+      if (filtro === 'en_acopio') filtrados = items.filter(d => d.estado !== 'enviado');
+      if (filtro === 'enviado') filtrados = items.filter(d => d.estado === 'enviado');
+
+      if (filtrados.length === 0) {
         lista.innerHTML = `<div class="text-center text-gray-400 text-sm py-10">No hay bultos en esta vista.</div>`;
         return;
       }
 
-      // Más recientes primero
-      items = [...items].sort((a, b) => b.id - a.id);
-
-      lista.innerHTML = items.map(d => {
-        const cat = categorias.find(c => c.id === d.cat) || categorias[categorias.length - 1];
+      lista.innerHTML = filtrados.map(d => {
+        const cat = categorias.find(c => c.id === d.categoria) || categorias[categorias.length - 1];
         const enviado = d.estado === 'enviado';
         return `
           <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-3 ${enviado ? 'opacity-70' : ''}">
@@ -394,26 +648,25 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
                 <div class="flex items-center gap-2 min-w-0">
                   <span class="text-xl shrink-0">${cat.icon}</span>
                   <div class="min-w-0">
-                    <p class="font-bold text-gray-800 text-sm leading-tight truncate">${d.desc}</p>
-                    <p class="text-xs text-gray-500">${d.qty} ${d.unidad} · Lote ${d.lote || '—'}</p>
+                    <p class="font-bold text-gray-800 text-sm leading-tight truncate">${d.descripcion}</p>
+                    <p class="text-xs text-gray-500">${d.cantidad} ${d.unidad} · Lote ${d.lote || '—'}</p>
                   </div>
                 </div>
-                <span class="text-[10px] font-mono text-gray-400 shrink-0">${new Date(d.id).toLocaleDateString('es-VE')}</span>
+                <span class="text-[10px] font-mono text-gray-400 shrink-0">${d._pendiente ? '⏳' : ''}</span>
               </div>
               <div class="flex flex-wrap gap-1 mt-2">
-                ${d.frio ? `<span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">❄️ Frío</span>` : ''}
-                ${d.venc ? `<span class="text-[10px] font-bold bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-full">⏳ ${d.venc}</span>` : ''}
+                ${d.requiere_frio ? `<span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">❄️ Frío</span>` : ''}
+                ${d.vencimiento ? `<span class="text-[10px] font-bold bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-full">⏳ ${d.vencimiento}</span>` : ''}
                 ${d.talla ? `<span class="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">${d.talla}</span>` : ''}
                 ${enviado ? `<span class="text-[10px] font-bold bg-green-50 text-green-700 px-2 py-0.5 rounded-full">✅ Enviado a ${d.destino}</span>` : ''}
               </div>
             </div>
-          </div>
-        `;
+          </div>`;
       }).join('');
 
       document.querySelectorAll('.chk-item').forEach(chk => {
         chk.addEventListener('change', (e) => {
-          const id = Number(e.target.getAttribute('data-id'));
+          const id = e.target.getAttribute('data-id');
           if (e.target.checked) seleccionados.add(id); else seleccionados.delete(id);
           actualizarBarraAcciones();
         });
@@ -438,13 +691,15 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       const contador = document.getElementById('contador-seleccion');
       if (seleccionados.size > 0) {
         barra.classList.remove('hidden');
-        contador.textContent = `${seleccionados.size} bulto${seleccionados.size > 1 ? 's' : ''} seleccionado${seleccionados.size > 1 ? 's' : ''}`;
+        contador.textContent = `${seleccionados.size} bulto(s) seleccionado(s)`;
       } else {
         barra.classList.add('hidden');
       }
     }
 
-    // 7. Marcar bultos como enviados (grupo o individual, mismo flujo)
+    // ============================================================
+    // 11. MARCAR COMO ENVIADO (grupo o individual, mismo flujo)
+    // ============================================================
     document.getElementById('btn-marcar-enviado').onclick = () => {
       const select = document.getElementById('select-destino');
       const destinos = obtenerDestinos();
@@ -452,8 +707,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         + `<option value="__nuevo__">+ Otro destino (agregar nuevo)</option>`;
       document.getElementById('nuevo-destino-wrap').classList.add('hidden');
       document.getElementById('input-nuevo-destino').value = '';
-      document.getElementById('modal-envio-resumen').textContent =
-        `${seleccionados.size} bulto${seleccionados.size > 1 ? 's' : ''} seleccionado${seleccionados.size > 1 ? 's' : ''}`;
+      document.getElementById('modal-envio-resumen').textContent = `${seleccionados.size} bulto(s) seleccionado(s)`;
       document.getElementById('modal-envio').classList.remove('hidden');
     };
 
@@ -465,10 +719,9 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       document.getElementById('modal-envio').classList.add('hidden');
     };
 
-    document.getElementById('btn-confirmar-envio').onclick = () => {
+    document.getElementById('btn-confirmar-envio').onclick = async () => {
       const select = document.getElementById('select-destino');
       let destino = select.value;
-
       if (destino === '__nuevo__') {
         const nuevo = document.getElementById('input-nuevo-destino').value.trim();
         if (!nuevo) { alert('Escribe el nombre del nuevo destino'); return; }
@@ -476,106 +729,66 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         guardarNuevoDestino(nuevo);
       }
 
-      const db = obtenerInventario();
-      const ahora = Date.now();
-      db.forEach(d => {
-        if (seleccionados.has(d.id)) {
-          d.estado = 'enviado';
-          d.destino = destino;
-          d.fechaEnvio = ahora;
+      const cambios = { estado: 'enviado', destino, fecha_envio: new Date().toISOString() };
+
+      for (const id of seleccionados) {
+        try {
+          const { error } = await sb.from('donativos').update(cambios).eq('id', id);
+          if (error) encolar({ tipo: 'update', id, cambios });
+        } catch (_e) {
+          encolar({ tipo: 'update', id, cambios });
         }
-      });
-      localStorage.setItem('acopio_db', JSON.stringify(db));
+      }
 
       document.getElementById('modal-envio').classList.add('hidden');
       seleccionados.clear();
       renderInventario(filtroActual);
     };
 
-    // 8. Código QR del Inventario (incluye estado de envío de cada bulto)
+    // ============================================================
+    // 12. CÓDIGO QR — ahora es solo un link corto (?centro=...), ya no texto largo
+    // ============================================================
     function generarQR() {
-      const db = obtenerInventario();
       const qrContainer = document.getElementById('qr-container');
       const qrError = document.getElementById('qr-error');
       qrContainer.innerHTML = '';
 
-      if (db.length === 0) {
-        qrContainer.classList.add('hidden');
-        qrError.textContent = 'Necesitas registrar al menos un donativo para generar el QR.';
-        qrError.classList.remove('hidden');
-        return;
-      }
+      const url = `${location.origin}${location.pathname}?centro=${CENTRO_ID}`;
+      document.getElementById('qr-link').textContent = url;
 
       if (typeof QRCode === 'undefined') {
         qrContainer.classList.add('hidden');
-        qrError.textContent = '⚠️ No se pudo generar el QR. Cierra y vuelve a abrir la app.';
         qrError.classList.remove('hidden');
         return;
       }
 
-      qrContainer.classList.remove('hidden');
-      qrError.classList.add('hidden');
-
-      const config = obtenerConfig();
-      let texto = `INVENTARIO - ${config.nombre || 'Centro de Acopio'}\n`;
-      if (config.estado) texto += `Estado: ${config.estado}\n`;
-      texto += `\n`;
-
-      db.forEach(d => {
-        const estadoTxt = d.estado === 'enviado' ? ` (✅ Enviado a ${d.destino})` : '';
-        texto += `• ${d.qty} ${d.unidad} - ${d.desc} [Lote ${d.lote || '—'}]${estadoTxt}\n`;
-      });
-
       try {
-        new QRCode(qrContainer, {
-          text: texto,
-          width: 200,
-          height: 200,
-          colorDark: '#1e3a8a',
-          colorLight: '#ffffff'
-        });
-      } catch (err) {
+        new QRCode(qrContainer, { text: url, width: 220, height: 220, colorDark: '#1e3a8a', colorLight: '#ffffff' });
+        qrContainer.classList.remove('hidden');
+        qrError.classList.add('hidden');
+      } catch (_e) {
         qrContainer.classList.add('hidden');
-        qrError.textContent = '⚠️ Ocurrió un error generando el QR. Intenta de nuevo.';
         qrError.classList.remove('hidden');
       }
     }
 
-    // 9. Configuración del Centro de Acopio
-    const CONFIG_KEY = 'acopio_config';
-    function obtenerConfig() {
-      return JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
-    }
-    function guardarConfig(config) {
-      localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-    }
-    function aplicarConfigUI() {
-      const config = obtenerConfig();
-      if (config.nombre) {
-        const h1 = document.getElementById('ui-centro-nombre');
-        h1.textContent = config.nombre;
-        // Tamaño dinámico según largo del nombre, para que nunca empuje el badge "Activo" fuera de pantalla
-        const tamano = config.nombre.length > 28 ? 'text-sm' : (config.nombre.length > 18 ? 'text-base' : 'text-lg');
-        h1.className = `font-bold leading-tight truncate ${tamano}`;
-        document.getElementById('ui-centro-estado').textContent = config.estado ? `📍 ${config.estado}` : 'Centro de Acopio Activo';
-        document.getElementById('cfg-nombre').value = config.nombre;
-      }
-      if (config.estado) {
-        document.getElementById('cfg-estado').value = config.estado;
-      }
+    // ============================================================
+    // 13. CONFIG (solo lectura del centro + cierre de sesión)
+    // ============================================================
+    function actualizarPanelConfig() {
+      actualizarBadgesPendientes();
     }
 
-    document.getElementById('btn-save-cfg').onclick = () => {
-      const nombre = document.getElementById('cfg-nombre').value.trim();
-      const estado = document.getElementById('cfg-estado').value;
-      if (!nombre) { alert('Escribe el nombre del centro'); return; }
-      guardarConfig({ nombre, estado });
-      aplicarConfigUI();
-      alert('Configuración guardada ✅');
-    };
-
-    // 10. Inicialización
-    aplicarConfigUI();
+    // ============================================================
+    // 14. INICIALIZACIÓN
+    // ============================================================
+    cargarEncabezado();
+    const paramsUrl = new URLSearchParams(location.search);
+    if (paramsUrl.get('centro')) {
+      initModoPublico();
+    } else {
+      initModoPrivado();
+    }
   </script>
 </body>
 </html>
