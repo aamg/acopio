@@ -92,6 +92,11 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
           <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Tu Correo</label>
           <input type="email" id="cc-correo" placeholder="tu@correo.com" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
         </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Crea una Clave (mín. 8 caracteres)</label>
+          <input type="password" id="cc-clave" placeholder="••••••••" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+          <p class="text-[10px] text-gray-400 mt-1">Esta clave es solo de respaldo — el uso diario sigue siendo con cédula+correo.</p>
+        </div>
         <p id="cc-error" class="text-sm text-red-500 hidden"></p>
         <p id="cc-exito" class="text-sm text-green-600 hidden"></p>
         <button type="button" id="btn-crear-centro" class="w-full bg-blue-600 text-white font-bold text-lg py-4 rounded-xl shadow-md active:scale-95 transition-transform">
@@ -200,6 +205,32 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
           Cerrar sesión de este dispositivo
         </button>
       </div>
+
+      <div id="seccion-admin" class="hidden space-y-4">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+          <h2 class="font-bold text-gray-800 border-b pb-2">🐝 Agregar Colaborador</h2>
+          <p class="text-xs text-gray-500">Queda autorizado de inmediato — entra solo con su cédula y correo, sin esperar confirmación.</p>
+          <div>
+            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Cédula</label>
+            <input type="text" id="col-cedula" placeholder="Ej: V-12345678" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Correo</label>
+            <input type="email" id="col-correo" placeholder="correo@ejemplo.com" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+          </div>
+          <p id="col-error" class="text-sm text-red-500 hidden"></p>
+          <p id="col-exito" class="text-sm text-green-600 hidden"></p>
+          <button type="button" id="btn-agregar-colaborador" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-md active:scale-95 transition-transform">
+            Agregar Colaborador
+          </button>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
+          <h2 class="font-bold text-gray-800 mb-2">📲 QR de Acceso al Centro</h2>
+          <p class="text-xs text-gray-500 mb-4">Compártelo con tus colaboradores para que entren directo a validarse con su cédula — distinto al QR de inventario.</p>
+          <div id="qr-acceso-container" class="bg-white p-2 border-4 border-blue-50 rounded-2xl"></div>
+        </div>
+      </div>
     </section>
 
   </main>
@@ -263,6 +294,8 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     let CENTRO_ID = null;
     const EDGE_FUNCTION_URL = SUPABASE_URL + '/functions/v1/validar-voluntario';
     const CREAR_CENTRO_URL = SUPABASE_URL + '/functions/v1/crear-centro';
+    const AGREGAR_COLABORADOR_URL = SUPABASE_URL + '/functions/v1/agregar-colaborador';
+    let esAdmin = false;
 
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -412,6 +445,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         });
         if (errSesion) { mostrarErrorValidacion('No se pudo activar la sesión. Intenta de nuevo.'); return; }
 
+        esAdmin = !!data.es_admin;
         mostrarAppPrivada();
       } catch (_e) {
         mostrarErrorValidacion('Error de conexión. Intenta de nuevo.');
@@ -460,14 +494,20 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       const region = document.getElementById('cc-region').value.trim();
       const cedula = document.getElementById('cc-cedula').value.trim();
       const correo = document.getElementById('cc-correo').value.trim();
+      const clave = document.getElementById('cc-clave').value;
       const btn = document.getElementById('btn-crear-centro');
       const errEl = document.getElementById('cc-error');
       const okEl = document.getElementById('cc-exito');
       errEl.classList.add('hidden');
       okEl.classList.add('hidden');
 
-      if (!nombre || !cedula || !correo) {
-        errEl.textContent = 'Completa nombre del centro, cédula y correo.';
+      if (!nombre || !cedula || !correo || !clave) {
+        errEl.textContent = 'Completa nombre del centro, cédula, correo y clave.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (clave.length < 8) {
+        errEl.textContent = 'La clave debe tener al menos 8 caracteres.';
         errEl.classList.remove('hidden');
         return;
       }
@@ -478,7 +518,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         const res = await fetch(CREAR_CENTRO_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nombre, region, cedula, correo }),
+          body: JSON.stringify({ nombre, region, cedula, correo, clave }),
         });
         const data = await res.json();
         if (!data.ok) {
@@ -491,6 +531,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
           document.getElementById('cc-region').value = '';
           document.getElementById('cc-cedula').value = '';
           document.getElementById('cc-correo').value = '';
+          document.getElementById('cc-clave').value = '';
         }
       } catch (_e) {
         errEl.textContent = 'Error de conexión. Intenta de nuevo.';
@@ -889,7 +930,64 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     // ============================================================
     function actualizarPanelConfig() {
       actualizarBadgesPendientes();
+      document.getElementById('seccion-admin').classList.toggle('hidden', !esAdmin);
+      if (esAdmin) generarQRAcceso();
     }
+
+    function generarQRAcceso() {
+      const cont = document.getElementById('qr-acceso-container');
+      cont.innerHTML = '';
+      if (typeof QRCode === 'undefined') return;
+      const url = `${location.origin}${location.pathname}`;
+      try {
+        new QRCode(cont, { text: url, width: 200, height: 200, colorDark: '#1e3a8a', colorLight: '#ffffff' });
+      } catch (_e) { /* se queda vacío si falla */ }
+    }
+
+    document.getElementById('btn-agregar-colaborador').onclick = async () => {
+      const cedula = document.getElementById('col-cedula').value.trim();
+      const correo = document.getElementById('col-correo').value.trim();
+      const btn = document.getElementById('btn-agregar-colaborador');
+      const errEl = document.getElementById('col-error');
+      const okEl = document.getElementById('col-exito');
+      errEl.classList.add('hidden');
+      okEl.classList.add('hidden');
+
+      if (!cedula || !correo) {
+        errEl.textContent = 'Completa cédula y correo.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Agregando...';
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) { errEl.textContent = 'Tu sesión expiró, valida de nuevo.'; errEl.classList.remove('hidden'); return; }
+
+        const res = await fetch(AGREGAR_COLABORADOR_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+          body: JSON.stringify({ cedula, correo }),
+        });
+        const data = await res.json();
+        if (!data.ok) {
+          errEl.textContent = data.error || 'No se pudo agregar.';
+          errEl.classList.remove('hidden');
+        } else {
+          okEl.textContent = data.mensaje || 'Colaborador agregado.';
+          okEl.classList.remove('hidden');
+          document.getElementById('col-cedula').value = '';
+          document.getElementById('col-correo').value = '';
+        }
+      } catch (_e) {
+        errEl.textContent = 'Error de conexión. Intenta de nuevo.';
+        errEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Agregar Colaborador';
+      }
+    };
 
     // ============================================================
     // 14. INICIALIZACIÓN
