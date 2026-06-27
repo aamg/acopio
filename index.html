@@ -81,6 +81,13 @@
         <h2 class="text-lg font-bold text-gray-800">Inventario Actual</h2>
         <button id="btn-refresh-inv" class="text-sm bg-white border px-3 py-1 rounded-lg font-semibold shadow-sm active:bg-gray-100">↻ Actualizar</button>
       </div>
+
+      <div class="flex gap-2 px-1" id="filtros-inventario">
+        <button type="button" data-filtro="todos" class="filtro-btn flex-1 text-xs font-bold py-2 rounded-lg bg-blue-600 text-white transition-colors">Todos</button>
+        <button type="button" data-filtro="en_acopio" class="filtro-btn flex-1 text-xs font-bold py-2 rounded-lg bg-gray-100 text-gray-500 transition-colors">En Acopio</button>
+        <button type="button" data-filtro="enviado" class="filtro-btn flex-1 text-xs font-bold py-2 rounded-lg bg-gray-100 text-gray-500 transition-colors">Enviados</button>
+      </div>
+
       <div id="lista-inventario" class="space-y-4">
         </div>
     </section>
@@ -116,6 +123,37 @@
     </section>
 
   </main>
+
+  <!-- Barra flotante de acciones (aparece al seleccionar bultos en Inventario) -->
+  <div id="barra-acciones" class="hidden fixed bottom-[70px] left-0 w-full bg-blue-900 text-white p-3 flex items-center justify-between z-40 shadow-lg">
+    <span id="contador-seleccion" class="text-sm font-bold pl-1">0 seleccionados</span>
+    <button type="button" id="btn-marcar-enviado" class="bg-white text-blue-900 font-bold text-sm px-4 py-2 rounded-xl active:scale-95 transition-transform">
+      🚚 Marcar Enviado
+    </button>
+  </div>
+
+  <!-- Modal para registrar el envío de uno o varios bultos -->
+  <div id="modal-envio" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-xl">
+      <h3 class="font-bold text-gray-800 text-lg">🚚 Marcar como Enviado</h3>
+      <p class="text-xs text-gray-500" id="modal-envio-resumen">0 bultos seleccionados</p>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Destino</label>
+        <select id="select-destino" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500"></select>
+      </div>
+
+      <div id="nuevo-destino-wrap" class="hidden">
+        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Nombre del nuevo destino</label>
+        <input type="text" id="input-nuevo-destino" placeholder="Ej: Hospital Central" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="button" id="btn-cancelar-envio" class="w-1/2 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl active:bg-gray-200">Cancelar</button>
+        <button type="button" id="btn-confirmar-envio" class="w-1/2 bg-blue-600 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform">Confirmar</button>
+      </div>
+    </div>
+  </div>
 
   <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around pb-safe pt-2 px-2 z-50 h-[70px]">
     <button data-tab="registrar" class="nav-tab flex-1 flex flex-col items-center justify-center text-blue-600 transition-colors">
@@ -250,12 +288,23 @@
       localStorage.setItem('acopio_db', JSON.stringify(db));
     }
 
+    // Prefijos de lote por categoría (se escriben en la caja física)
+    const PREFIJOS_LOTE = { medicinas: 'MED', alimentos: 'ALI', ropa: 'ROP', herramientas: 'HER', higiene: 'HIG', otros: 'OTR' };
+    function generarLote(catId) {
+      const prefijo = PREFIJOS_LOTE[catId] || 'GEN';
+      const sufijo = Date.now().toString().slice(-5);
+      return `${prefijo}-${sufijo}`;
+    }
+
     document.getElementById('btn-guardar').onclick = () => {
       const descInput = document.getElementById('input-desc');
       if(!descInput || !descInput.value.trim()) { alert("Escribe qué estás recibiendo"); return; }
 
+      const lote = generarLote(catSeleccionada);
+
       const donativo = {
         id: Date.now(),
+        lote: lote,
         cat: catSeleccionada,
         desc: descInput.value.trim(),
         qty: parseInt(document.getElementById('input-qty').value) || 1,
@@ -263,131 +312,248 @@
         venc: document.getElementById('input-venc') ? document.getElementById('input-venc').value : null,
         frio: document.getElementById('input-frio') ? document.getElementById('input-frio').checked : false,
         talla: document.getElementById('input-talla') ? document.getElementById('input-talla').value : null,
+        genero: document.getElementById('input-genero') ? document.getElementById('input-genero').value : null,
+        estado: 'en_acopio',
+        destino: null,
+        fechaEnvio: null
       };
 
       guardarDonativo(donativo);
-      
-      // UX de éxito
-      const prefijo = catSeleccionada.substring(0,3).toUpperCase();
-      const lote = `${prefijo}-${String(donativo.id).slice(-4)}`;
-      
+
+      // Mostrar ticket de éxito con el código de lote real
+      document.getElementById('ticket-lote').textContent = lote;
       formDinamico.classList.add('hidden');
       document.getElementById('ticket-exito').classList.remove('hidden');
-      document.getElementById('ticket-lote').textContent = lote;
-      
-      // Limpiar variables
-      document.getElementById('input-qty').value = 1;
+
+      // Reset visual de categorías y formulario, listo para el próximo registro
+      document.querySelectorAll('.cat-btn').forEach(b => {
+        b.className = 'cat-btn flex flex-col items-center p-3 rounded-xl border-2 border-transparent bg-gray-50 active:bg-gray-200 transition-all';
+      });
       catSeleccionada = null;
-      document.querySelectorAll('.cat-btn').forEach(b => b.className = 'cat-btn flex flex-col items-center p-3 rounded-xl border-2 border-transparent bg-gray-50 active:bg-gray-200 transition-all');
+      document.getElementById('input-qty').value = 1;
     };
 
-    // 5. Renderizado de Inventario
-    function renderInventario() {
-      const listEl = document.getElementById('lista-inventario');
+    // 5. Destinos de Envío (lista predefinida + opción de agregar nuevos)
+    const DESTINOS_KEY = 'acopio_destinos';
+    function obtenerDestinos() {
+      let destinos = JSON.parse(localStorage.getItem(DESTINOS_KEY) || 'null');
+      if (!destinos) {
+        destinos = [
+          'Hospital / Centro de Salud',
+          'Refugio / Albergue Temporal',
+          'Otro Centro de Acopio',
+          'Zona Afectada (reparto directo)'
+        ];
+        localStorage.setItem(DESTINOS_KEY, JSON.stringify(destinos));
+      }
+      return destinos;
+    }
+    function guardarNuevoDestino(nombre) {
+      const destinos = obtenerDestinos();
+      if (!destinos.includes(nombre)) {
+        destinos.push(nombre);
+        localStorage.setItem(DESTINOS_KEY, JSON.stringify(destinos));
+      }
+    }
+
+    // 6. Inventario: render, filtros y selección de bultos
+    let filtroActual = 'todos';
+    let seleccionados = new Set();
+
+    function renderInventario(filtro = filtroActual) {
       const db = obtenerInventario();
-      
-      if(db.length === 0) {
-        listEl.innerHTML = `<div class="text-center py-10 text-gray-400">Aún no hay registros.</div>`;
+      const lista = document.getElementById('lista-inventario');
+      seleccionados.clear();
+      actualizarBarraAcciones();
+
+      let items = db;
+      if (filtro === 'en_acopio') items = db.filter(d => d.estado !== 'enviado');
+      if (filtro === 'enviado') items = db.filter(d => d.estado === 'enviado');
+
+      if (items.length === 0) {
+        lista.innerHTML = `<div class="text-center text-gray-400 text-sm py-10">No hay bultos en esta vista.</div>`;
         return;
       }
 
-      // Agrupar por categoría
-      const agrupado = db.reduce((acc, curr) => {
-        if(!acc[curr.cat]) acc[curr.cat] = [];
-        acc[curr.cat].push(curr);
-        return acc;
-      }, {});
+      // Más recientes primero
+      items = [...items].sort((a, b) => b.id - a.id);
 
-      let html = '';
-      categorias.forEach(c => {
-        if(agrupado[c.id]) {
-          html += `
-            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-              <h3 class="font-bold text-gray-700 flex items-center gap-2 mb-3 border-b pb-2">
-                <span>${c.icon}</span> ${c.label}
-              </h3>
-              <ul class="space-y-2">
-                ${agrupado[c.id].reverse().map(item => `
-                  <li class="flex justify-between items-center text-sm">
-                    <div class="font-medium text-gray-800">
-                      ${item.desc} 
-                      ${item.frio ? '<span class="text-[10px] bg-blue-100 text-blue-700 px-1 rounded ml-1">FRIO</span>' : ''}
-                      ${item.talla ? `<span class="text-[10px] bg-gray-100 px-1 rounded ml-1">${item.talla}</span>` : ''}
-                    </div>
-                    <div class="font-bold bg-gray-50 px-2 py-1 rounded-lg border border-gray-100 text-gray-600">
-                      ${item.qty} ${item.unidad.substring(0,3).toLowerCase()}.
-                    </div>
-                  </li>
-                `).join('')}
-              </ul>
-            </div>`;
+      lista.innerHTML = items.map(d => {
+        const cat = categorias.find(c => c.id === d.cat) || categorias[categorias.length - 1];
+        const enviado = d.estado === 'enviado';
+        return `
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-3 ${enviado ? 'opacity-70' : ''}">
+            <label class="flex items-center shrink-0">
+              <input type="checkbox" data-id="${d.id}" class="chk-item w-5 h-5 rounded text-blue-600 accent-blue-600" ${enviado ? 'disabled' : ''}>
+            </label>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-start gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="text-xl shrink-0">${cat.icon}</span>
+                  <div class="min-w-0">
+                    <p class="font-bold text-gray-800 text-sm leading-tight truncate">${d.desc}</p>
+                    <p class="text-xs text-gray-500">${d.qty} ${d.unidad} · Lote ${d.lote || '—'}</p>
+                  </div>
+                </div>
+                <span class="text-[10px] font-mono text-gray-400 shrink-0">${new Date(d.id).toLocaleDateString('es-VE')}</span>
+              </div>
+              <div class="flex flex-wrap gap-1 mt-2">
+                ${d.frio ? `<span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">❄️ Frío</span>` : ''}
+                ${d.venc ? `<span class="text-[10px] font-bold bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-full">⏳ ${d.venc}</span>` : ''}
+                ${d.talla ? `<span class="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">${d.talla}</span>` : ''}
+                ${enviado ? `<span class="text-[10px] font-bold bg-green-50 text-green-700 px-2 py-0.5 rounded-full">✅ Enviado a ${d.destino}</span>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.chk-item').forEach(chk => {
+        chk.addEventListener('change', (e) => {
+          const id = Number(e.target.getAttribute('data-id'));
+          if (e.target.checked) seleccionados.add(id); else seleccionados.delete(id);
+          actualizarBarraAcciones();
+        });
+      });
+    }
+
+    document.querySelectorAll('.filtro-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        filtroActual = btn.getAttribute('data-filtro');
+        document.querySelectorAll('.filtro-btn').forEach(b => {
+          b.className = 'filtro-btn flex-1 text-xs font-bold py-2 rounded-lg bg-gray-100 text-gray-500 transition-colors';
+        });
+        btn.className = 'filtro-btn flex-1 text-xs font-bold py-2 rounded-lg bg-blue-600 text-white transition-colors';
+        renderInventario(filtroActual);
+      });
+    });
+
+    document.getElementById('btn-refresh-inv').onclick = () => renderInventario(filtroActual);
+
+    function actualizarBarraAcciones() {
+      const barra = document.getElementById('barra-acciones');
+      const contador = document.getElementById('contador-seleccion');
+      if (seleccionados.size > 0) {
+        barra.classList.remove('hidden');
+        contador.textContent = `${seleccionados.size} bulto${seleccionados.size > 1 ? 's' : ''} seleccionado${seleccionados.size > 1 ? 's' : ''}`;
+      } else {
+        barra.classList.add('hidden');
+      }
+    }
+
+    // 7. Marcar bultos como enviados (grupo o individual, mismo flujo)
+    document.getElementById('btn-marcar-enviado').onclick = () => {
+      const select = document.getElementById('select-destino');
+      const destinos = obtenerDestinos();
+      select.innerHTML = destinos.map(d => `<option value="${d}">${d}</option>`).join('')
+        + `<option value="__nuevo__">+ Otro destino (agregar nuevo)</option>`;
+      document.getElementById('nuevo-destino-wrap').classList.add('hidden');
+      document.getElementById('input-nuevo-destino').value = '';
+      document.getElementById('modal-envio-resumen').textContent =
+        `${seleccionados.size} bulto${seleccionados.size > 1 ? 's' : ''} seleccionado${seleccionados.size > 1 ? 's' : ''}`;
+      document.getElementById('modal-envio').classList.remove('hidden');
+    };
+
+    document.getElementById('select-destino').onchange = (e) => {
+      document.getElementById('nuevo-destino-wrap').classList.toggle('hidden', e.target.value !== '__nuevo__');
+    };
+
+    document.getElementById('btn-cancelar-envio').onclick = () => {
+      document.getElementById('modal-envio').classList.add('hidden');
+    };
+
+    document.getElementById('btn-confirmar-envio').onclick = () => {
+      const select = document.getElementById('select-destino');
+      let destino = select.value;
+
+      if (destino === '__nuevo__') {
+        const nuevo = document.getElementById('input-nuevo-destino').value.trim();
+        if (!nuevo) { alert('Escribe el nombre del nuevo destino'); return; }
+        destino = nuevo;
+        guardarNuevoDestino(nuevo);
+      }
+
+      const db = obtenerInventario();
+      const ahora = Date.now();
+      db.forEach(d => {
+        if (seleccionados.has(d.id)) {
+          d.estado = 'enviado';
+          d.destino = destino;
+          d.fechaEnvio = ahora;
         }
       });
-      listEl.innerHTML = html;
-    }
-    
-    document.getElementById('btn-refresh-inv').onclick = renderInventario;
+      localStorage.setItem('acopio_db', JSON.stringify(db));
 
-    // 6. Generador de QR
-    let qrInstancia = null;
+      document.getElementById('modal-envio').classList.add('hidden');
+      seleccionados.clear();
+      renderInventario(filtroActual);
+    };
+
+    // 8. Código QR del Inventario (incluye estado de envío de cada bulto)
     function generarQR() {
       const db = obtenerInventario();
-      const qrBox = document.getElementById('qr-container');
-      const errText = document.getElementById('qr-error');
-      
-      if(db.length === 0) {
-        qrBox.classList.add('hidden');
-        errText.classList.remove('hidden');
+      const qrContainer = document.getElementById('qr-container');
+      const qrError = document.getElementById('qr-error');
+      qrContainer.innerHTML = '';
+
+      if (db.length === 0) {
+        qrContainer.classList.add('hidden');
+        qrError.classList.remove('hidden');
         return;
       }
-      
-      qrBox.classList.remove('hidden');
-      errText.classList.add('hidden');
-      qrBox.innerHTML = ''; // Limpiar anterior
+      qrContainer.classList.remove('hidden');
+      qrError.classList.add('hidden');
 
-      // Creamos un texto simplificado (JSON) para que lo lea otra app u otro celular.
-      const resumenText = JSON.stringify({ centro: document.getElementById('cfg-nombre').value, total_items: db.length, app: "AcopioMovil" });
+      const config = obtenerConfig();
+      let texto = `INVENTARIO - ${config.nombre || 'Centro de Acopio'}\n`;
+      if (config.estado) texto += `Estado: ${config.estado}\n`;
+      texto += `\n`;
 
-      qrInstancia = new QRCode(qrBox, {
-        text: resumenText,
+      db.forEach(d => {
+        const estadoTxt = d.estado === 'enviado' ? ` (✅ Enviado a ${d.destino})` : '';
+        texto += `• ${d.qty} ${d.unidad} - ${d.desc} [Lote ${d.lote || '—'}]${estadoTxt}\n`;
+      });
+
+      new QRCode(qrContainer, {
+        text: texto,
         width: 200,
         height: 200,
-        colorDark : "#1e3a8a",
-        colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.L
+        colorDark: '#1e3a8a',
+        colorLight: '#ffffff'
       });
     }
 
-    // 7. Configuración del Acopio
-    function cargarConfig() {
-      const nombre = localStorage.getItem('acopio_nombre') || '';
-      const estado = localStorage.getItem('acopio_estado') || '';
-      
-      document.getElementById('cfg-nombre').value = nombre;
-      document.getElementById('cfg-estado').value = estado;
-      
-      if(nombre) document.getElementById('ui-centro-nombre').textContent = nombre;
-      if(estado) document.getElementById('ui-centro-estado').textContent = estado;
+    // 9. Configuración del Centro de Acopio
+    const CONFIG_KEY = 'acopio_config';
+    function obtenerConfig() {
+      return JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
+    }
+    function guardarConfig(config) {
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+    }
+    function aplicarConfigUI() {
+      const config = obtenerConfig();
+      if (config.nombre) {
+        document.getElementById('ui-centro-nombre').textContent = config.nombre;
+        document.getElementById('ui-centro-estado').textContent = config.estado ? `📍 ${config.estado}` : 'Centro de Acopio Activo';
+        document.getElementById('cfg-nombre').value = config.nombre;
+      }
+      if (config.estado) {
+        document.getElementById('cfg-estado').value = config.estado;
+      }
     }
 
     document.getElementById('btn-save-cfg').onclick = () => {
-      const n = document.getElementById('cfg-nombre').value;
-      const e = document.getElementById('cfg-estado').value;
-      localStorage.setItem('acopio_nombre', n);
-      localStorage.setItem('acopio_estado', e);
-      cargarConfig();
-      
-      const btn = document.getElementById('btn-save-cfg');
-      btn.textContent = '¡Guardado!';
-      btn.classList.replace('bg-gray-800', 'bg-green-600');
-      setTimeout(() => {
-        btn.textContent = 'Guardar Configuración';
-        btn.classList.replace('bg-green-600', 'bg-gray-800');
-      }, 1500);
+      const nombre = document.getElementById('cfg-nombre').value.trim();
+      const estado = document.getElementById('cfg-estado').value;
+      if (!nombre) { alert('Escribe el nombre del centro'); return; }
+      guardarConfig({ nombre, estado });
+      aplicarConfigUI();
+      alert('Configuración guardada ✅');
     };
 
-    // Inicializar app
-    cargarConfig();
+    // 10. Inicialización
+    aplicarConfigUI();
   </script>
 </body>
 </html>
