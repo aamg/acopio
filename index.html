@@ -199,6 +199,8 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         <div>
           <p class="text-xs font-bold text-gray-500 uppercase">Sincronización pendiente</p>
           <p class="text-gray-800" id="cfg-pendientes-display">0 cambios</p>
+          <div id="cfg-pendientes-detalle" class="text-xs text-gray-500 mt-1 space-y-1"></div>
+          <button type="button" id="btn-reintentar-sync" class="hidden mt-2 text-xs bg-gray-100 text-gray-700 font-semibold px-3 py-2 rounded-lg active:bg-gray-200">↻ Reintentar ahora</button>
         </div>
         <p class="text-[10px] text-gray-400">¿Necesitas cambiar el nombre o región del centro? Pídeselo a quien administra la base de datos.</p>
         <button type="button" id="btn-cerrar-sesion" class="w-full bg-gray-800 text-white font-bold py-3 rounded-xl shadow-md active:bg-gray-700">
@@ -635,11 +637,26 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       actualizarBadgesPendientes();
     }
     function actualizarBadgesPendientes() {
-      const n = obtenerCola().length;
+      const cola = obtenerCola();
+      const n = cola.length;
       const badge = document.getElementById('pendientes-badge');
       document.getElementById('pendientes-count').textContent = n;
       document.getElementById('cfg-pendientes-display').textContent = `${n} cambio(s)`;
       badge.classList.toggle('hidden', n === 0);
+
+      const detalle = document.getElementById('cfg-pendientes-detalle');
+      const btnReintentar = document.getElementById('btn-reintentar-sync');
+      if (n === 0) {
+        detalle.innerHTML = '';
+        btnReintentar.classList.add('hidden');
+      } else {
+        detalle.innerHTML = cola.map(op => {
+          const etiqueta = op.tipo === 'insert' ? `Registrar: ${op.payload?.descripcion || '—'}` : `Marcar enviado (id ${String(op.id).slice(0,8)}...)`;
+          const err = op._ultimoError ? ` — ⚠️ ${op._ultimoError}` : '';
+          return `<p>• ${etiqueta}${err}</p>`;
+        }).join('');
+        btnReintentar.classList.remove('hidden');
+      }
     }
 
     async function sincronizarCola() {
@@ -651,18 +668,27 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         try {
           if (op.tipo === 'insert') {
             const { error } = await sb.from('donativos').insert(op.payload);
-            if (error) restantes.push(op);
+            if (error) { op._ultimoError = error.message; restantes.push(op); }
           } else if (op.tipo === 'update') {
             const { error } = await sb.from('donativos').update(op.cambios).eq('id', op.id);
-            if (error) restantes.push(op);
+            if (error) { op._ultimoError = error.message; restantes.push(op); }
           }
-        } catch (_e) {
+        } catch (e) {
+          op._ultimoError = 'Sin conexión';
           restantes.push(op);
         }
       }
       guardarCola(restantes);
       actualizarBadgesPendientes();
+      if (restantes.length > 0) actualizarInventario(filtroActual);
     }
+
+    document.getElementById('btn-reintentar-sync').onclick = async () => {
+      const btn = document.getElementById('btn-reintentar-sync');
+      btn.textContent = 'Reintentando...';
+      await sincronizarCola();
+      btn.textContent = '↻ Reintentar ahora';
+    };
 
     function iniciarColaSync() {
       actualizarBadgesPendientes();
