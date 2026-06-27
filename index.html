@@ -65,6 +65,41 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         <button type="button" id="btn-validar" class="w-full bg-blue-600 text-white font-bold text-lg py-4 rounded-xl shadow-md active:scale-95 transition-transform">
           Validar y Continuar
         </button>
+        <button type="button" id="btn-ir-crear-centro" class="w-full text-blue-600 text-sm font-semibold py-2">
+          ¿Tu centro no existe todavía? Créalo aquí →
+        </button>
+      </div>
+    </section>
+
+    <!-- ======= CREAR CENTRO NUEVO (auto-registro, sin aprobación manual) ======= -->
+    <section id="panel-crear-centro" class="hidden space-y-4">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+        <h2 class="font-bold text-gray-800 border-b pb-2">Crear Centro de Acopio</h2>
+        <p class="text-xs text-gray-500">Quedarás como primer voluntario autorizado de este centro. Te llegará un correo de confirmación antes de poder usarlo.</p>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Nombre del Centro</label>
+          <input type="text" id="cc-nombre" placeholder="Ej: Gimnasio B. Juárez" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Estado / Región</label>
+          <input type="text" id="cc-region" placeholder="Ej: Lara" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Tu Cédula</label>
+          <input type="text" id="cc-cedula" placeholder="Ej: V-12345678" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Tu Correo</label>
+          <input type="email" id="cc-correo" placeholder="tu@correo.com" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+        </div>
+        <p id="cc-error" class="text-sm text-red-500 hidden"></p>
+        <p id="cc-exito" class="text-sm text-green-600 hidden"></p>
+        <button type="button" id="btn-crear-centro" class="w-full bg-blue-600 text-white font-bold text-lg py-4 rounded-xl shadow-md active:scale-95 transition-transform">
+          Crear Centro
+        </button>
+        <button type="button" id="btn-volver-validacion" class="w-full text-gray-500 text-sm font-semibold py-2">
+          ← Ya tengo un centro, quiero validarme
+        </button>
       </div>
     </section>
 
@@ -221,8 +256,9 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     // ============================================================
     const SUPABASE_URL = 'https://idatmkmbzdhfnhazmmys.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_FoCHxnWcmwdwMzutiMof3g_zvkRf_Da';
-    const CENTRO_ID = '2b763b50-0ea6-49c8-bbbf-561fcc2bea78';
+    let CENTRO_ID = null;
     const EDGE_FUNCTION_URL = SUPABASE_URL + '/functions/v1/validar-voluntario';
+    const CREAR_CENTRO_URL = SUPABASE_URL + '/functions/v1/crear-centro';
 
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -248,26 +284,36 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     }
 
     // ============================================================
-    // 3. ENCABEZADO: nombre/región del centro (siempre desde Supabase, función pública)
+    // 3. ENCABEZADO del centro
     // ============================================================
-    async function cargarEncabezado() {
+    function aplicarEncabezado(nombre, region) {
+      const h1 = document.getElementById('ui-centro-nombre');
+      h1.textContent = nombre;
+      const tamano = nombre.length > 28 ? 'text-sm' : (nombre.length > 18 ? 'text-base' : 'text-lg');
+      h1.className = `font-bold leading-tight truncate ${tamano}`;
+      document.getElementById('ui-centro-estado').textContent = region ? `📍 ${region}` : 'Centro de Acopio Activo';
+      document.getElementById('cfg-nombre-display').textContent = nombre;
+      document.getElementById('cfg-region-display').textContent = region || '—';
+    }
+
+    async function cargarEncabezadoPublico(centroId) {
       try {
-        const { data, error } = await sb.rpc('get_centro_publico', { p_centro_id: CENTRO_ID });
-        const h1 = document.getElementById('ui-centro-nombre');
-        if (!error && data && data[0]) {
-          const nombre = data[0].nombre;
-          h1.textContent = nombre;
-          const tamano = nombre.length > 28 ? 'text-sm' : (nombre.length > 18 ? 'text-base' : 'text-lg');
-          h1.className = `font-bold leading-tight truncate ${tamano}`;
-          document.getElementById('ui-centro-estado').textContent = data[0].region ? `📍 ${data[0].region}` : 'Centro de Acopio Activo';
-          document.getElementById('cfg-nombre-display').textContent = nombre;
-          document.getElementById('cfg-region-display').textContent = data[0].region || '—';
-        } else {
-          h1.textContent = 'Acopio Móvil';
-        }
+        const { data, error } = await sb.rpc('get_centro_publico', { p_centro_id: centroId });
+        if (!error && data && data[0]) aplicarEncabezado(data[0].nombre, data[0].region);
+        else document.getElementById('ui-centro-nombre').textContent = 'Acopio Móvil';
       } catch (_e) {
         document.getElementById('ui-centro-nombre').textContent = 'Acopio Móvil';
       }
+    }
+
+    async function cargarMiCentro() {
+      try {
+        const { data, error } = await sb.from('centros_acopio').select('id, nombre, region').single();
+        if (!error && data) {
+          CENTRO_ID = data.id;
+          aplicarEncabezado(data.nombre, data.region);
+        }
+      } catch (_e) { /* se queda con el encabezado por defecto */ }
     }
 
     // ============================================================
@@ -278,9 +324,9 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       return new Date(iso).toLocaleString('es-VE', { dateStyle: 'short', timeStyle: 'short' });
     }
 
-    async function cargarVistaPublica() {
+    async function cargarVistaPublica(centroId) {
       try {
-        const { data, error } = await sb.rpc('get_inventario_publico', { p_centro_id: CENTRO_ID });
+        const { data, error } = await sb.rpc('get_inventario_publico', { p_centro_id: centroId });
         const lista = document.getElementById('pub-lista');
         if (error) { lista.innerHTML = `<p class="text-center text-red-500 text-sm">No se pudo cargar el inventario.</p>`; return; }
 
@@ -316,10 +362,11 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       }
     }
 
-    function initModoPublico() {
+    function initModoPublico(centroId) {
       document.getElementById('panel-publico').classList.remove('hidden');
-      document.getElementById('btn-refrescar-publico').onclick = cargarVistaPublica;
-      cargarVistaPublica();
+      cargarEncabezadoPublico(centroId);
+      document.getElementById('btn-refrescar-publico').onclick = () => cargarVistaPublica(centroId);
+      cargarVistaPublica(centroId);
     }
 
     // ============================================================
@@ -372,9 +419,11 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
 
     function mostrarAppPrivada() {
       document.getElementById('panel-validacion').classList.add('hidden');
+      document.getElementById('panel-crear-centro').classList.add('hidden');
       document.getElementById('nav-principal').classList.remove('hidden');
       document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
       document.getElementById('panel-registrar').classList.remove('hidden');
+      cargarMiCentro();
       iniciarColaSync();
     }
 
@@ -390,6 +439,62 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     document.getElementById('btn-cerrar-sesion').onclick = async () => {
       await sb.auth.signOut();
       location.reload();
+    };
+
+    // Alternar entre "validarme" y "crear centro nuevo"
+    document.getElementById('btn-ir-crear-centro').onclick = () => {
+      document.getElementById('panel-validacion').classList.add('hidden');
+      document.getElementById('panel-crear-centro').classList.remove('hidden');
+    };
+    document.getElementById('btn-volver-validacion').onclick = () => {
+      document.getElementById('panel-crear-centro').classList.add('hidden');
+      document.getElementById('panel-validacion').classList.remove('hidden');
+    };
+
+    document.getElementById('btn-crear-centro').onclick = async () => {
+      const nombre = document.getElementById('cc-nombre').value.trim();
+      const region = document.getElementById('cc-region').value.trim();
+      const cedula = document.getElementById('cc-cedula').value.trim();
+      const correo = document.getElementById('cc-correo').value.trim();
+      const btn = document.getElementById('btn-crear-centro');
+      const errEl = document.getElementById('cc-error');
+      const okEl = document.getElementById('cc-exito');
+      errEl.classList.add('hidden');
+      okEl.classList.add('hidden');
+
+      if (!nombre || !cedula || !correo) {
+        errEl.textContent = 'Completa nombre del centro, cédula y correo.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Creando...';
+      try {
+        const res = await fetch(CREAR_CENTRO_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, region, cedula, correo }),
+        });
+        const data = await res.json();
+        if (!data.ok) {
+          errEl.textContent = data.error || 'No se pudo crear el centro.';
+          errEl.classList.remove('hidden');
+        } else {
+          okEl.textContent = data.mensaje || 'Centro creado. Revisa tu correo.';
+          okEl.classList.remove('hidden');
+          document.getElementById('cc-nombre').value = '';
+          document.getElementById('cc-region').value = '';
+          document.getElementById('cc-cedula').value = '';
+          document.getElementById('cc-correo').value = '';
+        }
+      } catch (_e) {
+        errEl.textContent = 'Error de conexión. Intenta de nuevo.';
+        errEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Crear Centro';
+      }
     };
 
     // ============================================================
@@ -765,11 +870,13 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     // ============================================================
     // 14. INICIALIZACIÓN
     // ============================================================
-    cargarEncabezado();
     const paramsUrl = new URLSearchParams(location.search);
-    if (paramsUrl.get('centro')) {
-      initModoPublico();
+    const centroEnUrl = paramsUrl.get('centro');
+    if (centroEnUrl) {
+      initModoPublico(centroEnUrl);
     } else {
+      document.getElementById('ui-centro-nombre').textContent = 'Acopio Móvil';
+      document.getElementById('ui-centro-estado').textContent = 'Inicia sesión para continuar';
       initModoPrivado();
     }
   </script>
