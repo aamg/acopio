@@ -326,13 +326,15 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       { id: 'medicinas', icon: '💊', label: 'Medicinas', color: 'bg-red-50 text-red-700 border-red-200' },
       { id: 'alimentos', icon: '🥫', label: 'Alimentos', color: 'bg-green-50 text-green-700 border-green-200' },
       { id: 'ropa', icon: '👕', label: 'Ropa', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+      { id: 'calzados', icon: '👟', label: 'Calzados', color: 'bg-amber-50 text-amber-700 border-amber-200' },
       { id: 'herramientas',icon: '🔨', label: 'Herram.', color: 'bg-orange-50 text-orange-700 border-orange-200' },
       { id: 'higiene', icon: '🧼', label: 'Higiene', color: 'bg-teal-50 text-teal-700 border-teal-200' },
+      { id: 'limpieza', icon: '🧽', label: 'Limpieza', color: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
       { id: 'juguetes', icon: '🧸', label: 'Juguetes', color: 'bg-purple-50 text-purple-700 border-purple-200' },
       { id: 'lenceria', icon: '🛏️', label: 'Lencería', color: 'bg-pink-50 text-pink-700 border-pink-200' },
       { id: 'otros', icon: '📦', label: 'Otros', color: 'bg-gray-100 text-gray-700 border-gray-300' }
     ];
-    const PREFIJOS_LOTE = { medicinas: 'MED', alimentos: 'ALI', ropa: 'ROP', herramientas: 'HER', higiene: 'HIG', juguetes: 'JUG', lenceria: 'LEN', otros: 'OTR' };
+    const PREFIJOS_LOTE = { medicinas: 'MED', alimentos: 'ALI', ropa: 'ROP', calzados: 'CAL', herramientas: 'HER', higiene: 'HIG', limpieza: 'LIM', juguetes: 'JUG', lenceria: 'LEN', otros: 'OTR' };
     function generarLote(catId) {
       const prefijo = PREFIJOS_LOTE[catId] || 'GEN';
       return `${prefijo}-${Date.now().toString().slice(-5)}`;
@@ -642,10 +644,14 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
               <select id="input-genero" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm"><option>Unisex</option><option>Mujer</option><option>Hombre</option></select>
             </div>
           </div>`;
+      } else if (id === 'calzados') {
+        camposEspecificos.innerHTML = basico + `
+          <label class="block text-xs font-bold text-gray-500 mt-3 mb-1 uppercase">Para quién</label>
+          <select id="input-talla" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm"><option>Niños</option><option>Damas</option><option>Caballeros</option></select>`;
       } else if (id === 'lenceria') {
         camposEspecificos.innerHTML = basico + `
           <label class="block text-xs font-bold text-gray-500 mt-3 mb-1 uppercase">Tamaño de cama</label>
-          <select id="input-talla" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm"><option>Individual</option><option>Matrimonial</option><option>Queen</option><option>King</option></select>`;
+          <select id="input-talla" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm"><option>Individual</option><option>Infantil</option><option>Matrimonial</option><option>Queen</option><option>King</option></select>`;
       } else {
         camposEspecificos.innerHTML = basico;
       }
