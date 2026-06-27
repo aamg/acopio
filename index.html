@@ -457,13 +457,13 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       }
     };
 
-    function mostrarAppPrivada() {
+    async function mostrarAppPrivada() {
       document.getElementById('panel-validacion').classList.add('hidden');
       document.getElementById('panel-crear-centro').classList.add('hidden');
       document.getElementById('nav-principal').classList.remove('hidden');
       document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
       document.getElementById('panel-registrar').classList.remove('hidden');
-      cargarMiCentro();
+      await cargarMiCentro();
       iniciarColaSync();
     }
 
@@ -666,6 +666,10 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       const restantes = [];
       for (const op of cola) {
         try {
+          // Auto-reparación: siempre usar el centro_id actual conocido, sin importar qué tenía guardado
+          if (op.tipo === 'insert' && CENTRO_ID) {
+            op.payload.centro_id = CENTRO_ID;
+          }
           if (op.tipo === 'insert') {
             const { error } = await sb.from('donativos').insert(op.payload);
             if (error) { op._ultimoError = error.message; restantes.push(op); }
@@ -703,6 +707,14 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     document.getElementById('btn-guardar').onclick = async () => {
       const descInput = document.getElementById('input-desc');
       if (!descInput || !descInput.value.trim()) { alert('Escribe qué estás recibiendo'); return; }
+
+      if (!CENTRO_ID) {
+        await cargarMiCentro();
+        if (!CENTRO_ID) {
+          alert('No se pudo identificar tu centro todavía. Espera unos segundos (revisando conexión) e intenta de nuevo.');
+          return;
+        }
+      }
 
       const lote = generarLote(catSeleccionada);
       const donativo = {
