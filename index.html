@@ -1,379 +1,393 @@
-<div id="acopio-app"></div>
-<style>
-  #acopio-app, #acopio-app * { box-sizing: border-box; }
-  #acopio-app {
-    --bg: #0a1f44; --surface: #12305f; --surface-alt: #0e264c; --border: #1e4a8a;
-    --text: #fff; --text-dim: #b9c8e6; --gold: #ffd24a;
-    --med: #e63946; --herr: #f4a14a; --ropa: #4ab3f4; --alim: #2ecc71; --higiene: #9b8cff; --otro: #8aa3c9;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-    background: var(--bg); color: var(--text); min-height: 100%; border-radius: 14px; overflow: hidden;
-  }
-  #acopio-app .flag { display:flex; height:8px; } #acopio-app .flag span{flex:1;}
-  #acopio-app .flag .y{background:#ffc400;} #acopio-app .flag .b{background:#003da5;} #acopio-app .flag .r{background:#cf142b;}
-  #acopio-app header { padding: 20px 20px 12px; }
-  #acopio-app h1 { margin:0; font-size: 22px; font-weight: 800; }
-  #acopio-app .sub { color: var(--text-dim); font-size: 13px; margin-top: 3px; }
-  #acopio-app .acopio-tag { margin-top:8px; font-size:13px; font-weight:700; color:var(--gold); display:none; }
-  #acopio-app .acopio-tag.show { display:block; }
-  #acopio-app nav.tabs { display:flex; gap:5px; padding: 14px 16px 0; }
-  #acopio-app nav.tabs button { flex:1; padding:10px 4px; border:none; border-radius:10px 10px 0 0; background:var(--surface-alt); color:var(--text-dim); font-size:12.5px; font-weight:700; cursor:pointer; }
-  #acopio-app nav.tabs button.active { background:var(--surface); color:#fff; }
-  #acopio-app .panel { padding: 18px 20px; background: var(--surface); }
-  #acopio-app .panel.hidden { display:none; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Acopio Móvil</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    /* Ocultar barra de desplazamiento para un look de app nativa */
+    ::-webkit-scrollbar { display: none; }
+    body { -ms-overflow-style: none; scrollbar-width: none; background-color: #f3f4f6; padding-bottom: 80px; }
+    /* Animación de pulso para el reloj */
+    @keyframes pulse-green { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+    .dot-pulse { animation: pulse-green 2s infinite; }
+  </style>
+</head>
+<body class="text-gray-800 antialiased font-sans">
 
-  #acopio-app .cat-label { font-size:13px; font-weight:700; color:var(--text-dim); margin-bottom:8px; }
-  #acopio-app .cat-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:8px; }
-  #acopio-app .cat-btn { padding:14px 6px; border-radius:12px; border:2px solid var(--border); background:var(--surface-alt); color:#fff; font-weight:700; font-size:13px; cursor:pointer; text-align:center; transition:all .12s; }
-  #acopio-app .cat-btn .ico { font-size:22px; display:block; margin-bottom:4px; }
-  #acopio-app .cat-btn[data-c=medicinas].sel { background:var(--med); border-color:var(--med); }
-  #acopio-app .cat-btn[data-c=herramientas].sel { background:var(--herr); border-color:var(--herr); color:#1a1100; }
-  #acopio-app .cat-btn[data-c=ropa].sel { background:var(--ropa); border-color:var(--ropa); color:#06243a; }
-  #acopio-app .cat-btn[data-c=alimentos].sel { background:var(--alim); border-color:var(--alim); color:#06241a; }
-  #acopio-app .cat-btn[data-c=higiene].sel { background:var(--higiene); border-color:var(--higiene); color:#160a3a; }
-  #acopio-app .cat-btn[data-c=otro].sel { background:var(--otro); border-color:var(--otro); color:#0a1422; }
-
-  #acopio-app label { display:block; font-size:13px; font-weight:700; margin:14px 0 6px; color:var(--text-dim); }
-  #acopio-app input, #acopio-app select, #acopio-app textarea { width:100%; padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--surface-alt); color:#fff; font-size:15px; font-family:inherit; }
-  #acopio-app textarea { resize:vertical; min-height:48px; }
-  #acopio-app .row2 { display:flex; gap:10px; } #acopio-app .row2 > div { flex:1; }
-  #acopio-app .qty-row { display:flex; gap:8px; align-items:center; }
-  #acopio-app .qty-row input { text-align:center; font-size:18px; font-weight:700; }
-  #acopio-app .qty-btn { width:48px; height:48px; border-radius:10px; border:1px solid var(--border); background:var(--surface-alt); color:#fff; font-size:24px; font-weight:700; cursor:pointer; flex:none; }
-  #acopio-app .chips { display:flex; flex-wrap:wrap; gap:6px; }
-  #acopio-app .chip { padding:8px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-alt); color:var(--text-dim); font-size:13px; font-weight:600; cursor:pointer; }
-  #acopio-app .chip.sel { background:var(--gold); color:#1a1100; border-color:var(--gold); }
-  #acopio-app .hint { font-size:12px; color:var(--text-dim); margin-top:6px; line-height:1.4; }
-  #acopio-app .hint.warn { color:var(--gold); }
-  #acopio-app .submit-btn { margin-top:18px; width:100%; padding:15px; border-radius:12px; border:none; background:var(--gold); color:#1a1100; font-weight:800; font-size:16px; cursor:pointer; }
-  #acopio-app .submit-btn:disabled { opacity:.5; }
-  #acopio-app .msg { margin-top:10px; font-size:13px; text-align:center; min-height:18px; }
-  #acopio-app .msg.ok { color:var(--alim); } #acopio-app .msg.err { color:var(--med); }
-
-  #acopio-app .ticket { margin-top:14px; padding:16px; border-radius:12px; background:#fff; color:#0a1f44; text-align:center; display:none; }
-  #acopio-app .ticket.show { display:block; }
-  #acopio-app .ticket .lote { font-size:30px; font-weight:800; letter-spacing:1px; }
-  #acopio-app .ticket .tdesc { font-size:14px; margin-top:4px; font-weight:600; }
-  #acopio-app .ticket .tnote { font-size:11px; color:#555; margin-top:8px; }
-
-  #acopio-app .top-stat { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
-  #acopio-app .top-stat .card { flex:1; min-width:90px; background:var(--surface-alt); border-radius:12px; padding:12px; text-align:center; border:1px solid var(--border); }
-  #acopio-app .top-stat .num { font-size:24px; font-weight:800; color:var(--gold); }
-  #acopio-app .top-stat .lbl { font-size:11px; color:var(--text-dim); margin-top:2px; }
-  #acopio-app .inv-cat { margin-bottom:18px; }
-  #acopio-app .inv-cat h3 { font-size:15px; margin:0 0 8px; display:flex; align-items:center; gap:8px; }
-  #acopio-app .inv-cat h3 .dot { width:12px; height:12px; border-radius:50%; }
-  #acopio-app .inv-item { display:flex; justify-content:space-between; padding:9px 12px; background:var(--surface-alt); border-radius:8px; margin-bottom:5px; font-size:14px; }
-  #acopio-app .inv-item .iqty { font-weight:800; color:var(--gold); }
-  #acopio-app .inv-item.venc { border-left:3px solid var(--med); }
-  #acopio-app .refresh-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
-  #acopio-app .refresh-row .updated { font-size:11px; color:var(--text-dim); }
-  #acopio-app .refresh-row button { background:var(--surface-alt); border:1px solid var(--border); color:var(--text-dim); border-radius:8px; padding:6px 12px; font-size:12px; cursor:pointer; }
-  #acopio-app .empty { text-align:center; color:var(--text-dim); padding:30px 10px; font-size:14px; }
-  #acopio-app .loading { text-align:center; color:var(--text-dim); padding:20px; font-size:13px; }
-  #acopio-app .log-item { padding:10px 12px; background:var(--surface-alt); border-radius:8px; margin-bottom:6px; font-size:13px; }
-  #acopio-app .log-item .lmeta { color:var(--text-dim); font-size:11px; margin-top:3px; }
-  #acopio-app .alert-box { background:rgba(230,57,70,0.12); border:1px solid rgba(230,57,70,0.4); border-radius:10px; padding:12px; margin-bottom:14px; font-size:13px; color:#ffb3ba; }
-  #acopio-app .alert-box b { color:#fff; }
-
-  #acopio-app .check-row { display:flex; align-items:center; gap:10px; margin-top:10px; background:rgba(255,255,255,0.06); padding:11px 12px; border-radius:10px; cursor:pointer; }
-  #acopio-app .check-row input { width:20px; height:20px; accent-color:var(--gold); flex:none; }
-  #acopio-app .check-row span { font-size:13px; color:#fff; font-weight:600; }
-
-  #acopio-app .clock-row { display:flex; align-items:center; gap:6px; margin-top:9px; font-size:12px; color:var(--text-dim); }
-  #acopio-app .clock-row .pdot { width:8px; height:8px; border-radius:50%; background:#2ecc71; animation: acopioPulse 1.6s infinite; flex:none; }
-  #acopio-app .clock-row .time { font-family: "SF Mono", Consolas, monospace; color:var(--gold); font-weight:700; }
-  @keyframes acopioPulse { 0%{opacity:1} 50%{opacity:.35} 100%{opacity:1} }
-
-  #acopio-app .cfg-save { margin-top:14px; width:100%; padding:12px; border-radius:10px; border:none; background:var(--gold); color:#1a1100; font-weight:800; font-size:15px; cursor:pointer; }
-  #acopio-app .cfg-note { font-size:12px; color:var(--text-dim); margin-top:8px; line-height:1.45; }
-
-  #acopio-app .sheet { background:#fff; color:#10243f; border-radius:12px; padding:20px; }
-  #acopio-app .sheet .s-head { text-align:center; border-bottom:2px solid #10243f; padding-bottom:10px; margin-bottom:12px; }
-  #acopio-app .sheet .s-name { font-size:19px; font-weight:800; }
-  #acopio-app .sheet .s-meta { font-size:12px; color:#555; margin-top:3px; }
-  #acopio-app .sheet .s-cat { margin-top:12px; }
-  #acopio-app .sheet .s-cat h4 { margin:0 0 5px; font-size:14px; border-bottom:1px solid #ccc; padding-bottom:3px; }
-  #acopio-app .sheet .s-line { display:flex; justify-content:space-between; font-size:13px; padding:2px 0; }
-  #acopio-app .sheet .s-line.venc { color:#c1121f; }
-  #acopio-app .sheet .s-qr { text-align:center; margin-top:16px; padding-top:14px; border-top:1px dashed #999; }
-  #acopio-app .sheet-actions { display:flex; gap:8px; margin-top:12px; }
-  #acopio-app .sheet-actions button { flex:1; padding:12px; border-radius:10px; border:none; font-weight:700; font-size:14px; cursor:pointer; }
-  #acopio-app .btn-print { background:var(--surface-alt); color:#fff; border:1px solid var(--border) !important; }
-  #acopio-app .btn-qr { background:var(--gold); color:#1a1100; }
-  #acopio-app .qrbox { display:flex; justify-content:center; padding:10px; }
-  #acopio-app .qrbox img, #acopio-app .qrbox canvas { background:#fff; padding:8px; border-radius:8px; }
-</style>
-<script>
-(function(){
-  const root = document.getElementById('acopio-app');
-  const CATS = {
-    medicinas:   { ico:'medicinas', label:'Medicinas', color:'var(--med)' },
-    herramientas:{ ico:'herram.', label:'Herramientas', color:'var(--herr)' },
-    ropa:        { ico:'ropa', label:'Ropa', color:'var(--ropa)' },
-    alimentos:   { ico:'alimentos', label:'Alimentos', color:'var(--alim)' },
-    higiene:     { ico:'higiene', label:'Higiene', color:'var(--higiene)' },
-    otro:        { ico:'otro', label:'Otro', color:'var(--otro)' }
-  };
-  const UNITS = ['unidad','caja','bolsa','paquete','blister','par','saco','kg','litro'];
-  const TALLAS = ['Bebe','Nino','Adulto S','Adulto M','Adulto L','Adulto XL','Calzado'];
-  const ROPA_TIPO = ['Abrigo','Camisa/franela','Pantalon','Ropa interior','Calzado','Cobija/sabana','Ropa de nino'];
-  const ESTADOS = ['Nuevo','Buen estado','Usado funcional','Revisar'];
-  const GENEROS = ['Unisex','Mujer','Hombre'];
-  const EDOS = ['Amazonas','Anzoategui','Apure','Aragua','Barinas','Bolivar','Carabobo','Cojedes','Delta Amacuro','Distrito Capital','Falcon','Guarico','La Guaira','Lara','Merida','Miranda','Monagas','Nueva Esparta','Portuguesa','Sucre','Tachira','Trujillo','Yaracuy','Zulia'];
-
-  let config = { nombre:'', estado:'' };
-
-  root.innerHTML = `
-    <div class="flag"><span class="y"></span><span class="b"></span><span class="r"></span></div>
-    <header>
-      <h1>Recepcion de Donaciones</h1>
-      <div class="sub">Centro de acopio - registro y clasificacion</div>
-      <div class="acopio-tag" id="acopio-tag"></div>
-      <div class="clock-row"><span class="pdot"></span><span>Activo -</span><span class="time" id="clock-time"></span></div>
-    </header>
-    <nav class="tabs">
-      <button data-tab="registrar" class="active">Registrar</button>
-      <button data-tab="inventario">Inventario</button>
-      <button data-tab="lista">Lista / QR</button>
-      <button data-tab="config">Acopio</button>
-    </nav>
-
-    <section class="panel" id="panel-registrar">
-      <div class="cat-label">1. Que tipo de donacion es?</div>
-      <div class="cat-grid" id="cat-grid">
-        ${Object.entries(CATS).map(([k,v])=>`<button class="cat-btn" data-c="${k}">${v.label}</button>`).join('')}
+  <header class="bg-blue-900 text-white p-4 sticky top-0 z-50 shadow-md">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-lg font-bold leading-tight truncate" id="ui-centro-nombre">Configura tu Acopio</h1>
+        <p class="text-xs text-blue-200" id="ui-centro-estado">Ve a la pestaña ⚙️ Config</p>
       </div>
-      <div id="dynamic-fields"></div>
-      <div id="form-tail" style="display:none">
-        <label>Cantidad</label>
-        <div class="qty-row">
-          <button class="qty-btn" id="qminus" type="button">-</button>
-          <input type="number" id="f-qty" value="1" min="1" inputmode="numeric" />
-          <button class="qty-btn" id="qplus" type="button">+</button>
+      <div class="text-right shrink-0 flex flex-col items-end">
+        <span class="flex items-center gap-1 text-xs font-semibold text-green-400 bg-blue-950 px-2 py-1 rounded-full">
+          <span class="w-2 h-2 rounded-full bg-green-400 dot-pulse block"></span> Activo
+        </span>
+        <span id="ui-clock" class="text-xs font-mono mt-1 text-blue-100">00:00</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="p-4 max-w-md mx-auto space-y-4">
+
+    <section id="panel-registrar" class="panel block space-y-4">
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+        <h2 class="text-sm font-bold text-gray-500 mb-3 uppercase tracking-wide">1. Categoría</h2>
+        <div class="grid grid-cols-3 gap-2" id="grid-categorias">
+          </div>
+      </div>
+
+      <div id="formulario-dinamico" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hidden space-y-4">
+        <div id="campos-especificos" class="space-y-4"></div>
+        
+        <hr class="border-gray-100">
+        
+        <div class="flex gap-4 items-end">
+          <div class="w-1/2">
+            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Cantidad</label>
+            <div class="flex items-center bg-gray-50 rounded-xl border border-gray-200">
+              <button type="button" id="btn-restar" class="w-12 h-12 text-2xl font-bold text-blue-600 active:bg-gray-200 rounded-l-xl">-</button>
+              <input type="number" id="input-qty" value="1" min="1" inputmode="numeric" class="w-full text-center bg-transparent text-xl font-bold outline-none border-x border-gray-200 h-12">
+              <button type="button" id="btn-sumar" class="w-12 h-12 text-2xl font-bold text-blue-600 active:bg-gray-200 rounded-r-xl">+</button>
+            </div>
+          </div>
+          <div class="w-1/2">
+            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Unidad</label>
+            <select id="input-unidad" class="w-full h-12 px-3 bg-gray-50 border border-gray-200 rounded-xl outline-none font-semibold text-gray-700 appearance-none">
+              <option>Unidades</option><option>Cajas</option><option>Bolsas</option><option>Kilos</option><option>Litros</option><option>Pares</option>
+            </select>
+          </div>
         </div>
-        <div class="row2" style="margin-top:10px">
-          <div><label>Unidad</label><select id="f-unit">${UNITS.map(u=>`<option>${u}</option>`).join('')}</select></div>
-          <div><label>Voluntario (opcional)</label><input type="text" id="f-vol" placeholder="Tu nombre" /></div>
+
+        <button type="button" id="btn-guardar" class="w-full bg-blue-600 text-white font-bold text-lg py-4 rounded-xl shadow-md active:scale-95 transition-transform mt-2">
+          Registrar Donativo
+        </button>
+      </div>
+
+      <div id="ticket-exito" class="hidden bg-green-50 border border-green-200 p-4 rounded-2xl text-center">
+        <div class="text-green-600 text-3xl mb-1">✅</div>
+        <h3 class="font-bold text-green-800 text-lg">Guardado con éxito</h3>
+        <p class="text-xs text-green-600 mt-1">Escribe este código en la caja:</p>
+        <div id="ticket-lote" class="text-2xl font-mono font-bold bg-white mt-2 py-2 rounded-lg border border-green-300">MED-12345</div>
+      </div>
+    </section>
+
+    <section id="panel-inventario" class="panel hidden space-y-4">
+      <div class="flex justify-between items-center px-1">
+        <h2 class="text-lg font-bold text-gray-800">Inventario Actual</h2>
+        <button id="btn-refresh-inv" class="text-sm bg-white border px-3 py-1 rounded-lg font-semibold shadow-sm active:bg-gray-100">↻ Actualizar</button>
+      </div>
+      <div id="lista-inventario" class="space-y-4">
         </div>
-        <button class="submit-btn" id="f-submit">Registrar y generar lote</button>
-        <div class="msg" id="f-msg"></div>
-        <div class="ticket" id="ticket">
-          <div class="lote" id="t-lote"></div>
-          <div class="tdesc" id="t-desc"></div>
-          <div class="tnote">Escribe este codigo en la caja/bolsa fisica antes de guardarla en su zona.</div>
+    </section>
+
+    <section id="panel-lista" class="panel hidden space-y-4">
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
+        <h2 class="font-bold text-gray-800 mb-2">Código QR del Inventario</h2>
+        <p class="text-xs text-gray-500 mb-6">Muestra este código para compartir la lista pública de lo que hay en este acopio.</p>
+        
+        <div id="qr-container" class="bg-white p-2 border-4 border-blue-50 rounded-2xl mb-4"></div>
+        <p id="qr-error" class="text-sm text-red-500 hidden">Necesitas registrar al menos un donativo para generar el QR.</p>
+      </div>
+    </section>
+
+    <section id="panel-config" class="panel hidden space-y-4">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+        <h2 class="font-bold text-gray-800 border-b pb-2">Datos del Centro de Acopio</h2>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Nombre del Lugar</label>
+          <input type="text" id="cfg-nombre" placeholder="Ej: Gimnasio B. Juárez" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
         </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Estado / Región</label>
+          <select id="cfg-estado" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+            <option value="">Selecciona...</option>
+            <option>Amazonas</option><option>Anzoátegui</option><option>Apure</option><option>Aragua</option><option>Barinas</option><option>Bolívar</option><option>Carabobo</option><option>Cojedes</option><option>Delta Amacuro</option><option>Distrito Capital</option><option>Falcón</option><option>Guárico</option><option>La Guaira</option><option>Lara</option><option>Mérida</option><option>Miranda</option><option>Monagas</option><option>Nueva Esparta</option><option>Portuguesa</option><option>Sucre</option><option>Táchira</option><option>Trujillo</option><option>Yaracuy</option><option>Zulia</option>
+          </select>
+        </div>
+        <button type="button" id="btn-save-cfg" class="w-full bg-gray-800 text-white font-bold py-3 rounded-xl shadow-md active:bg-gray-700">
+          Guardar Configuración
+        </button>
       </div>
     </section>
 
-    <section class="panel hidden" id="panel-inventario">
-      <div class="top-stat">
-        <div class="card"><div class="num" id="i-total">-</div><div class="lbl">registros</div></div>
-        <div class="card"><div class="num" id="i-cats">-</div><div class="lbl">categorias</div></div>
-        <div class="card"><div class="num" id="i-venc">-</div><div class="lbl">por revisar</div></div>
-      </div>
-      <div class="refresh-row"><span class="updated" id="i-updated"></span><button id="i-refresh">Actualizar</button></div>
-      <div id="i-alerts"></div>
-      <div id="i-list"></div>
-    </section>
+  </main>
 
-    <section class="panel hidden" id="panel-lista">
-      <div class="refresh-row"><span class="updated" id="l-updated"></span><button id="l-refresh">Actualizar</button></div>
-      <div id="l-sheet"></div>
-      <div class="sheet-actions">
-        <button class="btn-qr" id="l-genqr">Generar QR</button>
-        <button class="btn-print" id="l-print">Imprimir</button>
-      </div>
-      <div class="qrbox" id="l-qrbox"></div>
-      <div class="cfg-note" id="l-qrnote"></div>
-    </section>
+  <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around pb-safe pt-2 px-2 z-50 h-[70px]">
+    <button data-tab="registrar" class="nav-tab flex-1 flex flex-col items-center justify-center text-blue-600 transition-colors">
+      <span class="text-2xl mb-1">📦</span>
+      <span class="text-[10px] font-bold">Captura</span>
+    </button>
+    <button data-tab="inventario" class="nav-tab flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 transition-colors">
+      <span class="text-2xl mb-1">📋</span>
+      <span class="text-[10px] font-bold">Inventario</span>
+    </button>
+    <button data-tab="lista" class="nav-tab flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 transition-colors">
+      <span class="text-2xl mb-1">📱</span>
+      <span class="text-[10px] font-bold">QR / Lista</span>
+    </button>
+    <button data-tab="config" class="nav-tab flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 transition-colors">
+      <span class="text-2xl mb-1">⚙️</span>
+      <span class="text-[10px] font-bold">Ajustes</span>
+    </button>
+  </nav>
 
-    <section class="panel hidden" id="panel-config">
-      <label>Nombre del centro de acopio</label>
-      <input type="text" id="c-nombre" placeholder="Ej: Acopio Iglesia La Guaira" />
-      <label>Estado</label>
-      <select id="c-estado"><option value="">Selecciona...</option>${EDOS.map(e=>`<option>${e}</option>`).join('')}</select>
-      <button class="cfg-save" id="c-save">Guardar datos del acopio</button>
-      <div class="msg" id="c-msg"></div>
-      <div class="cfg-note">Estos datos apareceran en el encabezado y en cada lista/QR que generes, para identificar de que acopio proviene la informacion.</div>
-    </section>
-  `;
+  <script>
+    // 1. Configuración y Reloj
+    function actualizarReloj() {
+      document.getElementById('ui-clock').textContent = new Date().toLocaleTimeString('es-VE', {hour:'2-digit', minute:'2-digit'});
+    }
+    setInterval(actualizarReloj, 60000); actualizarReloj();
 
-  function tickClock(){ const el=root.querySelector('#clock-time'); if(el) el.textContent=new Date().toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
-  setInterval(tickClock,1000); tickClock();
-
-  let qrLibState='idle';
-  function loadQR(cb){
-    if(window.QRCode){ qrLibState='ok'; return cb(true); }
-    if(qrLibState==='loading'){ setTimeout(()=>loadQR(cb),300); return; }
-    qrLibState='loading';
-    const s=document.createElement('script');
-    s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
-    s.onload=()=>{ qrLibState='ok'; cb(true); };
-    s.onerror=()=>{ qrLibState='fail'; cb(false); };
-    document.head.appendChild(s);
-  }
-
-  async function loadConfig(){
-    try{ const g=await window.storage.get('config:acopio', true); if(g&&g.value){ config=JSON.parse(g.value); } }catch(e){}
-    applyConfig();
-  }
-  function applyConfig(){
-    const tag=root.querySelector('#acopio-tag');
-    if(config.nombre || config.estado){ tag.textContent=(config.nombre||'(sin nombre)')+(config.estado?(' - '+config.estado):''); tag.classList.add('show'); }
-    else { tag.classList.remove('show'); }
-    const cn=root.querySelector('#c-nombre'), ce=root.querySelector('#c-estado');
-    if(cn) cn.value=config.nombre||''; if(ce) ce.value=config.estado||'';
-  }
-  root.querySelector('#c-save').addEventListener('click', async ()=>{
-    config.nombre=root.querySelector('#c-nombre').value.trim();
-    config.estado=root.querySelector('#c-estado').value;
-    const msg=root.querySelector('#c-msg');
-    try{ await window.storage.set('config:acopio', JSON.stringify(config), true); msg.textContent='Datos guardados.'; msg.className='msg ok'; applyConfig(); }
-    catch(e){ msg.textContent='No se pudo guardar.'; msg.className='msg err'; }
-  });
-
-  const tabs=root.querySelectorAll('nav.tabs button');
-  tabs.forEach(b=>b.addEventListener('click',()=>{
-    tabs.forEach(x=>x.classList.remove('active')); b.classList.add('active');
-    root.querySelectorAll('.panel').forEach(p=>p.classList.add('hidden'));
-    root.querySelector('#panel-'+b.dataset.tab).classList.remove('hidden');
-    if(b.dataset.tab==='inventario') renderInventario();
-    if(b.dataset.tab==='lista') renderLista();
-  }));
-
-  let cat=null; const sel={tipo:null,talla:null,estado:null,genero:null};
-  function chipRow(id,items){ return `<div class="chips" id="${id}">${items.map(i=>`<button class="chip" type="button" data-v="${i}">${i}</button>`).join('')}</div>`; }
-  function bindChips(id,key){ root.querySelectorAll('#'+id+' .chip').forEach(c=>c.addEventListener('click',()=>{ root.querySelectorAll('#'+id+' .chip').forEach(x=>x.classList.remove('sel')); c.classList.add('sel'); sel[key]=c.dataset.v; })); }
-  function renderFields(){
-    const df=root.querySelector('#dynamic-fields'); sel.tipo=null; sel.talla=null; sel.estado=null; sel.genero=null;
-    if(cat==='medicinas'){ df.innerHTML=`<label>Nombre del medicamento</label><input type="text" id="f-nombre" placeholder="Ej: Amoxicilina 500mg" /><label>Fecha de vencimiento</label><input type="month" id="f-venc" /><label class="check-row" for="f-frio"><input type="checkbox" id="f-frio" /><span>Requiere cadena de frio (refrigeracion)</span></label><div class="hint warn">No distribuir medicina vencida. Si no tiene fecha visible o esta vencida, marcala para revision.</div>`; }
-    else if(cat==='herramientas'){ df.innerHTML=`<label>Tipo de herramienta</label><input type="text" id="f-nombre" placeholder="Ej: Pala, pico, linterna, casco" /><label>Estado</label>${chipRow('estado-chips',ESTADOS)}`; bindChips('estado-chips','estado'); }
-    else if(cat==='ropa'){ df.innerHTML=`<label>Tipo de prenda</label>${chipRow('tipo-chips',ROPA_TIPO)}<label>Talla / grupo</label>${chipRow('talla-chips',TALLAS)}<label>Genero</label>${chipRow('genero-chips',GENEROS)}`; bindChips('tipo-chips','tipo'); bindChips('talla-chips','talla'); bindChips('genero-chips','genero'); }
-    else if(cat==='alimentos'){ df.innerHTML=`<label>Producto</label><input type="text" id="f-nombre" placeholder="Ej: Arroz, atun enlatado, agua" /><label>Fecha de vencimiento (si aplica)</label><input type="month" id="f-venc" />`; }
-    else if(cat==='higiene'){ df.innerHTML=`<label>Producto</label><input type="text" id="f-nombre" placeholder="Ej: Jabon, toallas, panales" />`; }
-    else { df.innerHTML=`<label>Describe el articulo</label><input type="text" id="f-nombre" placeholder="Que es?" />`; }
-    root.querySelector('#form-tail').style.display='block';
-  }
-  root.querySelectorAll('.cat-btn').forEach(b=>b.addEventListener('click',()=>{ root.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); cat=b.dataset.c; renderFields(); root.querySelector('#ticket').classList.remove('show'); }));
-  root.querySelector('#qminus').addEventListener('click',()=>{ const q=root.querySelector('#f-qty'); q.value=Math.max(1,(parseInt(q.value)||1)-1); });
-  root.querySelector('#qplus').addEventListener('click',()=>{ const q=root.querySelector('#f-qty'); q.value=(parseInt(q.value)||0)+1; });
-
-  function shortDesc(rec){ let p=[]; if(rec.nombre)p.push(rec.nombre); if(rec.tipo)p.push(rec.tipo); if(rec.talla)p.push(rec.talla); if(rec.genero)p.push(rec.genero); p.push(rec.qty+' '+rec.unit+(rec.qty>1?'s':'')); return p.join(' - '); }
-  function isVenc(rec){ if(!rec.venc) return false; const a=rec.venc.split('-').map(Number); return new Date(a[0],a[1],0) < new Date(); }
-
-  root.querySelector('#f-submit').addEventListener('click', async ()=>{
-    const msg=root.querySelector('#f-msg');
-    if(!cat){ msg.textContent='Elige una categoria.'; msg.className='msg err'; return; }
-    const nombreEl=root.querySelector('#f-nombre'); const nombre=nombreEl?nombreEl.value.trim():'';
-    const vencEl=root.querySelector('#f-venc');
-    const frioEl=root.querySelector('#f-frio'); const frio=frioEl?frioEl.checked:false;
-    const rec={ cat, nombre, tipo:sel.tipo, talla:sel.talla, estado:sel.estado, genero:sel.genero, frio, venc:vencEl?vencEl.value:null, qty:parseInt(root.querySelector('#f-qty').value)||1, unit:root.querySelector('#f-unit').value, vol:root.querySelector('#f-vol').value.trim(), ts:Date.now() };
-    if(cat==='ropa' && !sel.tipo){ msg.textContent='Indica el tipo de prenda.'; msg.className='msg err'; return; }
-    if(cat!=='ropa' && !nombre){ msg.textContent='Escribe el nombre/descripcion.'; msg.className='msg err'; return; }
-    const lote=CATS[cat].label.slice(0,3).toUpperCase()+'-'+String(Date.now()).slice(-5); rec.lote=lote;
-    const key='d:'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
-    const btn=root.querySelector('#f-submit'); btn.disabled=true;
-    try{
-      const res=await window.storage.set(key, JSON.stringify(rec), true); if(!res) throw new Error('x');
-      msg.textContent='';
-      const t=root.querySelector('#ticket'); t.classList.add('show');
-      root.querySelector('#t-lote').textContent=lote;
-      root.querySelector('#t-desc').textContent=shortDesc(rec)+(isVenc(rec)?' (VENCIDO - REVISAR)':'')+(rec.frio?' [FRIO]':'');
-      root.querySelector('#f-qty').value=1; if(nombreEl)nombreEl.value=''; if(vencEl)vencEl.value='';
-      root.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel')); sel.tipo=null; sel.talla=null; sel.estado=null; sel.genero=null;
-    }catch(e){ msg.textContent='No se pudo registrar. Intenta de nuevo.'; msg.className='msg err'; }
-    finally{ btn.disabled=false; }
-  });
-
-  async function fetchAll(){
-    try{ const lr=await window.storage.list('d:', true); const keys=(lr&&lr.keys)||[]; const out=[];
-      for(const k of keys){ try{ const g=await window.storage.get(k,true); if(g&&g.value){ const d=JSON.parse(g.value); d._key=k; out.push(d);} }catch(e){} }
-      return out; }catch(e){ return []; }
-  }
-  function timeAgo(ts){ const m=Math.floor((Date.now()-ts)/60000); if(m<1)return'ahora'; if(m<60)return'hace '+m+' min'; const h=Math.floor(m/60); if(h<24)return'hace '+h+' h'; return'hace '+Math.floor(h/24)+' d'; }
-
-  function groupInventory(recs){
-    const byCat={};
-    recs.forEach(r=>{ if(!byCat[r.cat])byCat[r.cat]={}; const k=r.cat==='ropa'?((r.tipo||'Ropa')+(r.talla?(' - '+r.talla):'')+(r.genero?(' - '+r.genero):'')):(r.nombre||'Sin nombre');
-      if(!byCat[r.cat][k])byCat[r.cat][k]={qty:0,unit:r.unit,venc:false,frio:false}; byCat[r.cat][k].qty+=r.qty; if(isVenc(r))byCat[r.cat][k].venc=true; if(r.frio)byCat[r.cat][k].frio=true; });
-    return byCat;
-  }
-
-  async function renderInventario(){
-    const listEl=root.querySelector('#i-list'); listEl.innerHTML='<div class="loading">Cargando inventario...</div>';
-    const recs=await fetchAll();
-    root.querySelector('#i-updated').textContent='Actualizado '+timeAgo(Date.now());
-    root.querySelector('#i-total').textContent=recs.length;
-    root.querySelector('#i-cats').textContent=new Set(recs.map(r=>r.cat)).size;
-    const vencidos=recs.filter(isVenc); root.querySelector('#i-venc').textContent=vencidos.length;
-    root.querySelector('#i-alerts').innerHTML = vencidos.length?`<div class="alert-box"><b>${vencidos.length} registro(s) vencido(s) o por revisar.</b> No distribuir hasta verificar.</div>`:'';
-    if(recs.length===0){ listEl.innerHTML='<div class="empty">Aun no hay donaciones registradas.</div>'; return; }
-    const byCat=groupInventory(recs);
-    listEl.innerHTML=Object.keys(CATS).filter(c=>byCat[c]).map(c=>{ const items=Object.entries(byCat[c]).sort((a,b)=>b[1].qty-a[1].qty);
-      return `<div class="inv-cat"><h3><span class="dot" style="background:${CATS[c].color}"></span>${CATS[c].label}</h3>${items.map(([n,d])=>`<div class="inv-item ${d.venc?'venc':''}"><span>${n}${d.venc?' (!)':''}${d.frio?' [FRIO]':''}</span><span class="iqty">${d.qty} ${d.unit}${d.qty>1?'s':''}</span></div>`).join('')}</div>`; }).join('');
-  }
-  root.querySelector('#i-refresh').addEventListener('click', renderInventario);
-
-  let lastListText='';
-  function buildListText(byCat){
-    const lines=[];
-    lines.push((config.nombre||'CENTRO DE ACOPIO').toUpperCase());
-    if(config.estado) lines.push('Estado: '+config.estado);
-    lines.push('Fecha: '+new Date().toLocaleDateString('es-VE')+' '+new Date().toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'}));
-    lines.push('--- INVENTARIO DISPONIBLE ---');
-    Object.keys(CATS).filter(c=>byCat[c]).forEach(c=>{
-      lines.push(''); lines.push(CATS[c].label.toUpperCase()+':');
-      Object.entries(byCat[c]).sort((a,b)=>b[1].qty-a[1].qty).forEach(([n,d])=>{ lines.push('- '+n+': '+d.qty+' '+d.unit+(d.qty>1?'s':'')+(d.venc?' (REVISAR)':'')+(d.frio?' (FRIO)':'')); });
+    // 2. Navegación Inferior (Tabs)
+    const tabs = document.querySelectorAll('.nav-tab');
+    const paneles = document.querySelectorAll('.panel');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Estilos de botones
+        tabs.forEach(t => t.classList.replace('text-blue-600', 'text-gray-400'));
+        tab.classList.replace('text-gray-400', 'text-blue-600');
+        // Mostrar panel
+        const destino = tab.getAttribute('data-tab');
+        paneles.forEach(p => p.classList.add('hidden'));
+        document.getElementById(`panel-${destino}`).classList.remove('hidden');
+        
+        // Acciones específicas al entrar a una pestaña
+        if(destino === 'inventario') renderInventario();
+        if(destino === 'lista') generarQR();
+      });
     });
-    return lines.join('\n');
-  }
 
-  async function renderLista(){
-    const sheetEl=root.querySelector('#l-sheet'); sheetEl.innerHTML='<div class="loading">Cargando...</div>';
-    root.querySelector('#l-qrbox').innerHTML=''; root.querySelector('#l-qrnote').textContent='';
-    const recs=await fetchAll();
-    root.querySelector('#l-updated').textContent='Actualizado '+timeAgo(Date.now());
-    if(recs.length===0){ sheetEl.innerHTML='<div class="empty">No hay inventario para listar todavia.</div>'; lastListText=''; return; }
-    const byCat=groupInventory(recs);
-    lastListText=buildListText(byCat);
-    const fecha=new Date().toLocaleDateString('es-VE')+' '+new Date().toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'});
-    sheetEl.innerHTML=`<div class="sheet" id="print-sheet">
-      <div class="s-head">
-        <div class="s-name">${(config.nombre||'Centro de Acopio')}</div>
-        <div class="s-meta">${config.estado?('Estado '+config.estado+' - '):''}${fecha}</div>
-        <div class="s-meta">Inventario disponible</div>
-      </div>
-      ${Object.keys(CATS).filter(c=>byCat[c]).map(c=>`<div class="s-cat"><h4>${CATS[c].label}</h4>${Object.entries(byCat[c]).sort((a,b)=>b[1].qty-a[1].qty).map(([n,d])=>`<div class="s-line ${d.venc?'venc':''}"><span>${n}${d.venc?' (!)':''}${d.frio?' [FRIO]':''}</span><span><b>${d.qty}</b> ${d.unit}${d.qty>1?'s':''}</span></div>`).join('')}</div>`).join('')}
-      <div class="s-qr" id="s-qr-slot"></div>
-    </div>`;
-  }
-  root.querySelector('#l-refresh').addEventListener('click', renderLista);
+    // 3. Categorías y UI de Formulario
+    const categorias = [
+      { id: 'medicinas', icon: '💊', label: 'Medicinas', color: 'bg-red-50 text-red-700 border-red-200' },
+      { id: 'alimentos', icon: '🥫', label: 'Alimentos', color: 'bg-green-50 text-green-700 border-green-200' },
+      { id: 'ropa', icon: '👕', label: 'Ropa', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+      { id: 'herramientas',icon: '🔨', label: 'Herram.', color: 'bg-orange-50 text-orange-700 border-orange-200' },
+      { id: 'higiene', icon: '🧼', label: 'Higiene', color: 'bg-teal-50 text-teal-700 border-teal-200' },
+      { id: 'otros', icon: '📦', label: 'Otros', color: 'bg-gray-100 text-gray-700 border-gray-300' }
+    ];
 
-  root.querySelector('#l-genqr').addEventListener('click', ()=>{
-    const note=root.querySelector('#l-qrnote'); const box=root.querySelector('#l-qrbox'); box.innerHTML='';
-    if(!lastListText){ note.textContent='Primero abre la lista (debe haber inventario).'; return; }
-    note.textContent='Generando QR...';
-    loadQR((ok)=>{
-      if(!ok){ note.textContent='No se pudo cargar el generador de QR (revisa la conexion). La lista de texto si esta disponible para imprimir.'; return; }
-      let text=lastListText;
-      if(text.length>1200){ text=text.split('\n').filter(l=>!l.startsWith('- ')).join('\n')+'\n(Resumen - ver lista impresa para el detalle)'; }
-      try{
-        box.innerHTML='';
-        new QRCode(box, { text:text, width:230, height:230, correctLevel: QRCode.CorrectLevel.M });
-        note.textContent='Escanea para ver el inventario. Si cambio el stock, vuelve a generar el QR.';
-        const slot=root.querySelector('#s-qr-slot');
-        if(slot){ slot.innerHTML='<div style="font-size:11px;color:#555;margin-bottom:6px">Escanea para ver esta lista</div>'; const c2=document.createElement('div'); c2.style.display='flex'; c2.style.justifyContent='center'; slot.appendChild(c2); new QRCode(c2,{text:text,width:150,height:150,correctLevel:QRCode.CorrectLevel.M}); }
-      }catch(e){ note.textContent='La lista es muy extensa para un solo QR. Usa la version impresa.'; }
+    let catSeleccionada = null;
+    const gridCategorias = document.getElementById('grid-categorias');
+    const formDinamico = document.getElementById('formulario-dinamico');
+    const camposEspecificos = document.getElementById('campos-especificos');
+
+    // Renderizar botones de categoría
+    gridCategorias.innerHTML = categorias.map(c => `
+      <button type="button" data-cat="${c.id}" class="cat-btn flex flex-col items-center p-3 rounded-xl border-2 border-transparent bg-gray-50 active:bg-gray-200 transition-all">
+        <span class="text-3xl mb-1">${c.icon}</span>
+        <span class="text-xs font-bold text-gray-600">${c.label}</span>
+      </button>
+    `).join('');
+
+    // Manejar selección de categoría
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = btn.getAttribute('data-cat');
+        catSeleccionada = id;
+        
+        // Estilos visuales
+        document.querySelectorAll('.cat-btn').forEach(b => {
+          b.className = 'cat-btn flex flex-col items-center p-3 rounded-xl border-2 border-transparent bg-gray-50 active:bg-gray-200 transition-all opacity-60';
+        });
+        const activeCat = categorias.find(c => c.id === id);
+        btn.className = `cat-btn flex flex-col items-center p-3 rounded-xl border-2 transition-all opacity-100 shadow-sm ${activeCat.color}`;
+        
+        // Mostrar form y ocultar ticket previo
+        document.getElementById('ticket-exito').classList.add('hidden');
+        formDinamico.classList.remove('hidden');
+        renderCampos(id);
+      });
     });
-  });
 
-  root.querySelector('#l-print').addEventListener('click', ()=>{
-    const sheet=root.querySelector('#print-sheet'); if(!sheet){ return; }
-    const w=window.open('','_blank'); if(!w){ alert('Permite las ventanas emergentes para imprimir.'); return; }
-    w.document.write('<html><head><title>Inventario acopio</title><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;color:#10243f;padding:20px;max-width:600px;margin:auto}h4{border-bottom:1px solid #ccc;padding-bottom:3px;margin:14px 0 5px}.s-line{display:flex;justify-content:space-between;font-size:14px;padding:2px 0}.s-head{text-align:center;border-bottom:2px solid #10243f;padding-bottom:10px;margin-bottom:10px}.venc{color:#c1121f}.s-name{font-size:20px;font-weight:800}</style></head><body>'+sheet.innerHTML+'</body></html>');
-    w.document.close(); setTimeout(()=>{ try{w.print();}catch(e){} },400);
-  });
+    function renderCampos(id) {
+      const basico = `<label class="block text-xs font-bold text-gray-500 mb-1 uppercase">¿Qué es?</label>
+                      <input type="text" id="input-desc" placeholder="Descripción del artículo..." class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">`;
+      
+      if(id === 'medicinas') {
+        camposEspecificos.innerHTML = basico + `
+          <label class="block text-xs font-bold text-gray-500 mt-3 mb-1 uppercase">Vencimiento</label>
+          <input type="month" id="input-venc" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none">
+          <label class="flex items-center gap-2 mt-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+            <input type="checkbox" id="input-frio" class="w-5 h-5 rounded text-blue-600 accent-blue-600">
+            <span class="text-sm font-bold text-blue-800">Requiere cadena de frío ❄️</span>
+          </label>`;
+      } else if (id === 'ropa') {
+        camposEspecificos.innerHTML = basico + `
+          <div class="flex gap-3 mt-3">
+            <div class="w-1/2">
+              <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Talla</label>
+              <select id="input-talla" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm"><option>Infantil</option><option>Adulto S/M</option><option>Adulto L/XL</option></select>
+            </div>
+            <div class="w-1/2">
+              <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Género</label>
+              <select id="input-genero" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm"><option>Unisex</option><option>Mujer</option><option>Hombre</option></select>
+            </div>
+          </div>`;
+      } else {
+        camposEspecificos.innerHTML = basico;
+      }
+    }
 
-  loadConfig();
-})();
-</script>
+    // Lógica de + y -
+    document.getElementById('btn-restar').onclick = () => { const i = document.getElementById('input-qty'); i.value = Math.max(1, (parseInt(i.value)||1) - 1); };
+    document.getElementById('btn-sumar').onclick = () => { const i = document.getElementById('input-qty'); i.value = (parseInt(i.value)||0) + 1; };
+
+    // 4. Base de Datos (LocalStorage Real)
+    function obtenerInventario() {
+      return JSON.parse(localStorage.getItem('acopio_db') || '[]');
+    }
+    
+    function guardarDonativo(donativo) {
+      const db = obtenerInventario();
+      db.push(donativo);
+      localStorage.setItem('acopio_db', JSON.stringify(db));
+    }
+
+    document.getElementById('btn-guardar').onclick = () => {
+      const descInput = document.getElementById('input-desc');
+      if(!descInput || !descInput.value.trim()) { alert("Escribe qué estás recibiendo"); return; }
+
+      const donativo = {
+        id: Date.now(),
+        cat: catSeleccionada,
+        desc: descInput.value.trim(),
+        qty: parseInt(document.getElementById('input-qty').value) || 1,
+        unidad: document.getElementById('input-unidad').value,
+        venc: document.getElementById('input-venc') ? document.getElementById('input-venc').value : null,
+        frio: document.getElementById('input-frio') ? document.getElementById('input-frio').checked : false,
+        talla: document.getElementById('input-talla') ? document.getElementById('input-talla').value : null,
+      };
+
+      guardarDonativo(donativo);
+      
+      // UX de éxito
+      const prefijo = catSeleccionada.substring(0,3).toUpperCase();
+      const lote = `${prefijo}-${String(donativo.id).slice(-4)}`;
+      
+      formDinamico.classList.add('hidden');
+      document.getElementById('ticket-exito').classList.remove('hidden');
+      document.getElementById('ticket-lote').textContent = lote;
+      
+      // Limpiar variables
+      document.getElementById('input-qty').value = 1;
+      catSeleccionada = null;
+      document.querySelectorAll('.cat-btn').forEach(b => b.className = 'cat-btn flex flex-col items-center p-3 rounded-xl border-2 border-transparent bg-gray-50 active:bg-gray-200 transition-all');
+    };
+
+    // 5. Renderizado de Inventario
+    function renderInventario() {
+      const listEl = document.getElementById('lista-inventario');
+      const db = obtenerInventario();
+      
+      if(db.length === 0) {
+        listEl.innerHTML = `<div class="text-center py-10 text-gray-400">Aún no hay registros.</div>`;
+        return;
+      }
+
+      // Agrupar por categoría
+      const agrupado = db.reduce((acc, curr) => {
+        if(!acc[curr.cat]) acc[curr.cat] = [];
+        acc[curr.cat].push(curr);
+        return acc;
+      }, {});
+
+      let html = '';
+      categorias.forEach(c => {
+        if(agrupado[c.id]) {
+          html += `
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+              <h3 class="font-bold text-gray-700 flex items-center gap-2 mb-3 border-b pb-2">
+                <span>${c.icon}</span> ${c.label}
+              </h3>
+              <ul class="space-y-2">
+                ${agrupado[c.id].reverse().map(item => `
+                  <li class="flex justify-between items-center text-sm">
+                    <div class="font-medium text-gray-800">
+                      ${item.desc} 
+                      ${item.frio ? '<span class="text-[10px] bg-blue-100 text-blue-700 px-1 rounded ml-1">FRIO</span>' : ''}
+                      ${item.talla ? `<span class="text-[10px] bg-gray-100 px-1 rounded ml-1">${item.talla}</span>` : ''}
+                    </div>
+                    <div class="font-bold bg-gray-50 px-2 py-1 rounded-lg border border-gray-100 text-gray-600">
+                      ${item.qty} ${item.unidad.substring(0,3).toLowerCase()}.
+                    </div>
+                  </li>
+                `).join('')}
+              </ul>
+            </div>`;
+        }
+      });
+      listEl.innerHTML = html;
+    }
+    
+    document.getElementById('btn-refresh-inv').onclick = renderInventario;
+
+    // 6. Generador de QR
+    let qrInstancia = null;
+    function generarQR() {
+      const db = obtenerInventario();
+      const qrBox = document.getElementById('qr-container');
+      const errText = document.getElementById('qr-error');
+      
+      if(db.length === 0) {
+        qrBox.classList.add('hidden');
+        errText.classList.remove('hidden');
+        return;
+      }
+      
+      qrBox.classList.remove('hidden');
+      errText.classList.add('hidden');
+      qrBox.innerHTML = ''; // Limpiar anterior
+
+      // Creamos un texto simplificado (JSON) para que lo lea otra app u otro celular.
+      const resumenText = JSON.stringify({ centro: document.getElementById('cfg-nombre').value, total_items: db.length, app: "AcopioMovil" });
+
+      qrInstancia = new QRCode(qrBox, {
+        text: resumenText,
+        width: 200,
+        height: 200,
+        colorDark : "#1e3a8a",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.L
+      });
+    }
+
+    // 7. Configuración del Acopio
+    function cargarConfig() {
+      const nombre = localStorage.getItem('acopio_nombre') || '';
+      const estado = localStorage.getItem('acopio_estado') || '';
+      
+      document.getElementById('cfg-nombre').value = nombre;
+      document.getElementById('cfg-estado').value = estado;
+      
+      if(nombre) document.getElementById('ui-centro-nombre').textContent = nombre;
+      if(estado) document.getElementById('ui-centro-estado').textContent = estado;
+    }
+
+    document.getElementById('btn-save-cfg').onclick = () => {
+      const n = document.getElementById('cfg-nombre').value;
+      const e = document.getElementById('cfg-estado').value;
+      localStorage.setItem('acopio_nombre', n);
+      localStorage.setItem('acopio_estado', e);
+      cargarConfig();
+      
+      const btn = document.getElementById('btn-save-cfg');
+      btn.textContent = '¡Guardado!';
+      btn.classList.replace('bg-gray-800', 'bg-green-600');
+      setTimeout(() => {
+        btn.textContent = 'Guardar Configuración';
+        btn.classList.replace('bg-green-600', 'bg-gray-800');
+      }, 1500);
+    };
+
+    // Inicializar app
+    cargarConfig();
+  </script>
+</body>
+</html>
