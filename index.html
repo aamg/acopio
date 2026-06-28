@@ -225,6 +225,70 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       </div>
     </section>
 
+    <section id="panel-lotes" class="panel hidden space-y-4">
+      <div class="flex justify-between items-center px-1">
+        <h2 class="text-lg font-bold text-gray-800">Lotes de Entrega</h2>
+        <button id="btn-nuevo-lote" class="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg font-semibold shadow-sm active:scale-95 transition-transform">+ Nuevo Lote</button>
+      </div>
+
+      <div class="flex gap-2 px-1" id="filtros-lotes">
+        <button type="button" data-filtro-lote="preparando" class="filtro-lote-btn flex-1 text-xs font-bold py-2 rounded-lg bg-blue-600 text-white transition-colors">Preparando</button>
+        <button type="button" data-filtro-lote="listo" class="filtro-lote-btn flex-1 text-xs font-bold py-2 rounded-lg bg-gray-100 text-gray-500 transition-colors">Listos</button>
+        <button type="button" data-filtro-lote="enviado" class="filtro-lote-btn flex-1 text-xs font-bold py-2 rounded-lg bg-gray-100 text-gray-500 transition-colors">Enviados</button>
+      </div>
+
+      <div id="lista-lotes" class="space-y-3"></div>
+    </section>
+
+    <!-- ======= DETALLE DE UN LOTE ======= -->
+    <section id="panel-detalle-lote" class="hidden space-y-4">
+      <button id="btn-volver-lotes" class="text-sm text-blue-600 font-semibold">← Volver a Lotes</button>
+
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="font-mono font-bold text-lg text-gray-800" id="dl-codigo">LOTE-00000</p>
+            <p class="text-sm text-gray-500" id="dl-destino">Destino: —</p>
+          </div>
+          <span id="dl-estado-badge" class="text-xs font-bold px-3 py-1 rounded-full">Preparando</span>
+        </div>
+        <div id="dl-resumen-categorias" class="text-sm space-y-1 border-t border-gray-100 pt-3"></div>
+      </div>
+
+      <div id="dl-acciones" class="grid grid-cols-2 gap-3"></div>
+
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+        <h3 class="text-sm font-bold text-gray-500 mb-3 uppercase tracking-wide">Contenido del lote</h3>
+        <div id="dl-contenido" class="space-y-3"></div>
+      </div>
+    </section>
+
+    <!-- ======= MODAL: AGREGAR A LOTE (desde Inventario) ======= -->
+    <div id="modal-agregar-lote" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-xl">
+        <h3 class="font-bold text-gray-800 text-lg">📦 Agregar a un Lote</h3>
+        <p class="text-xs text-gray-500" id="mal-resumen">0 bultos seleccionados</p>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Lote</label>
+          <select id="mal-select-lote" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500"></select>
+        </div>
+
+        <div id="mal-nuevo-destino-wrap" class="hidden">
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Destino del nuevo lote</label>
+          <select id="mal-select-destino" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500"></select>
+          <div id="mal-nuevo-destino-texto-wrap" class="hidden mt-2">
+            <input type="text" id="mal-nuevo-destino-texto" placeholder="Nombre del nuevo destino" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button type="button" id="btn-cancelar-agregar-lote" class="w-1/2 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl active:bg-gray-200">Cancelar</button>
+          <button type="button" id="btn-confirmar-agregar-lote" class="w-1/2 bg-blue-600 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform">Agregar</button>
+        </div>
+      </div>
+    </div>
+
     <section id="panel-config" class="panel hidden space-y-4">
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
         <h2 class="font-bold text-gray-800 border-b pb-2">Centro de Acopio</h2>
@@ -281,32 +345,8 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   <div id="barra-acciones" class="hidden fixed bottom-[70px] left-0 w-full bg-blue-900 text-white p-3 flex items-center justify-between z-40 shadow-lg">
     <span id="contador-seleccion" class="text-sm font-bold pl-1">0 seleccionados</span>
     <button type="button" id="btn-marcar-enviado" class="bg-white text-blue-900 font-bold text-sm px-4 py-2 rounded-xl active:scale-95 transition-transform">
-      🚚 Marcar Enviado
+      📦 Agregar a Lote
     </button>
-  </div>
-
-  <!-- Modal para registrar el envío de uno o varios bultos -->
-  <div id="modal-envio" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-xl">
-      <h3 class="font-bold text-gray-800 text-lg">🚚 Marcar como Enviado</h3>
-      <p class="text-xs text-gray-500" id="modal-envio-resumen">0 bultos seleccionados</p>
-      <div id="modal-checklist-empaque" class="hidden bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-xl p-3"></div>
-
-      <div>
-        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Destino</label>
-        <select id="select-destino" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500"></select>
-      </div>
-
-      <div id="nuevo-destino-wrap" class="hidden">
-        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Nombre del nuevo destino</label>
-        <input type="text" id="input-nuevo-destino" placeholder="Ej: Hospital Central" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
-      </div>
-
-      <div class="flex gap-3 pt-2">
-        <button type="button" id="btn-cancelar-envio" class="w-1/2 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl active:bg-gray-200">Cancelar</button>
-        <button type="button" id="btn-confirmar-envio" class="w-1/2 bg-blue-600 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform">Confirmar</button>
-      </div>
-    </div>
   </div>
 
   <nav id="nav-principal" class="hidden fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around pb-safe pt-2 px-2 z-50 h-[70px]">
@@ -321,6 +361,10 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     <button data-tab="lista" class="nav-tab flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 transition-colors">
       <span class="text-2xl mb-1">📱</span>
       <span class="text-[10px] font-bold">QR / Lista</span>
+    </button>
+    <button data-tab="lotes" class="nav-tab flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 transition-colors">
+      <span class="text-2xl mb-1">🚚</span>
+      <span class="text-[10px] font-bold">Lotes</span>
     </button>
     <button data-tab="config" class="nav-tab flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 transition-colors">
       <span class="text-2xl mb-1">⚙️</span>
@@ -357,11 +401,12 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       { id: 'herramientas',icon: '🔨', label: 'Herram.', color: 'bg-orange-50 text-orange-700 border-orange-200' },
       { id: 'higiene', icon: '🧼', label: 'Higiene', color: 'bg-teal-50 text-teal-700 border-teal-200' },
       { id: 'limpieza', icon: '🧽', label: 'Limpieza', color: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
+      { id: 'rescate', icon: '⛑️', label: 'Rescate', color: 'bg-rose-50 text-rose-700 border-rose-200' },
       { id: 'juguetes', icon: '🧸', label: 'Juguetes', color: 'bg-purple-50 text-purple-700 border-purple-200' },
       { id: 'lenceria', icon: '🛏️', label: 'Lencería', color: 'bg-pink-50 text-pink-700 border-pink-200' },
       { id: 'otros', icon: '📦', label: 'Otros', color: 'bg-gray-100 text-gray-700 border-gray-300' }
     ];
-    const PREFIJOS_LOTE = { medicinas: 'MED', alimentos: 'ALI', ropa: 'ROP', calzados: 'CAL', herramientas: 'HER', higiene: 'HIG', limpieza: 'LIM', juguetes: 'JUG', lenceria: 'LEN', otros: 'OTR' };
+    const PREFIJOS_LOTE = { medicinas: 'MED', alimentos: 'ALI', ropa: 'ROP', calzados: 'CAL', herramientas: 'HER', higiene: 'HIG', limpieza: 'LIM', rescate: 'RES', juguetes: 'JUG', lenceria: 'LEN', otros: 'OTR' };
     function generarLote(catId) {
       const prefijo = PREFIJOS_LOTE[catId] || 'GEN';
       return `${prefijo}-${Date.now().toString().slice(-5)}`;
@@ -528,6 +573,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
       document.getElementById('panel-registrar').classList.remove('hidden');
       await cargarMiCentro();
+      hidratarCachesLocales();   // ahora que ya se sabe el centro, cargar su caché persistida
       await cargarEsAdmin();
       iniciarColaSync();
     }
@@ -542,6 +588,9 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     }
 
     document.getElementById('btn-cerrar-sesion').onclick = async () => {
+      // Limpiar cachés de visualización del centro (la cola de pendientes se conserva
+      // por si quedaron capturas sin sincronizar; van amarradas a su centro)
+      try { localStorage.removeItem(INVENTARIO_KEY); localStorage.removeItem(LOTES_KEY); } catch (_e) {}
       await sb.auth.signOut();
       location.reload();
     };
@@ -624,6 +673,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         document.getElementById(`panel-${destino}`).classList.remove('hidden');
         if (destino === 'inventario') actualizarInventario();
         if (destino === 'lista') generarQR();
+        if (destino === 'lotes') actualizarLotes(filtroLoteActual);
         if (destino === 'config') actualizarPanelConfig();
       });
     });
@@ -705,7 +755,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     function guardarCola(cola) { localStorage.setItem(COLA_KEY, JSON.stringify(cola)); }
     function encolar(operacion) {
       const cola = obtenerCola();
-      cola.push(operacion);
+      cola.push({ ...operacion, _id: crypto.randomUUID(), _centro: CENTRO_ID });
       guardarCola(cola);
       actualizarBadgesPendientes();
     }
@@ -724,7 +774,12 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         btnReintentar.classList.add('hidden');
       } else {
         detalle.innerHTML = cola.map(op => {
-          const etiqueta = op.tipo === 'insert' ? `Registrar: ${op.payload?.descripcion || '—'}` : `Marcar enviado (id ${String(op.id).slice(0,8)}...)`;
+          let etiqueta;
+          if (op.tabla === 'lotes_entrega') {
+            etiqueta = op.tipo === 'insert' ? `Crear lote ${op.payload?.codigo || ''}` : (op.tipo === 'delete' ? 'Eliminar lote' : 'Actualizar lote');
+          } else {
+            etiqueta = op.tipo === 'insert' ? `Registrar: ${op.payload?.descripcion || '—'}` : 'Actualizar bulto';
+          }
           const err = op._ultimoError ? ` — ⚠️ ${op._ultimoError}` : '';
           return `<p>• ${etiqueta}${err}</p>`;
         }).join('');
@@ -732,32 +787,50 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       }
     }
 
+    let sincronizando = false;
     async function sincronizarCola() {
+      if (sincronizando) return;
       let cola = obtenerCola();
       if (cola.length === 0) return;
-
-      const restantes = [];
+      sincronizando = true;
+      try {
+      const exitosos = new Set();   // _id de ops sincronizadas con éxito
+      const errores = {};           // _id -> mensaje de error
       for (const op of cola) {
+        // No sincronizar operaciones que quedaron de la sesión de otro centro
+        if (op._centro && op._centro !== CENTRO_ID) continue;
+        const tabla = op.tabla || 'donativos'; // compatibilidad con cola vieja
         try {
-          // Auto-reparación: siempre usar el centro_id actual conocido, sin importar qué tenía guardado
-          if (op.tipo === 'insert' && CENTRO_ID) {
+          // Auto-reparación: rellenar centro_id solo si falta (nunca sobrescribir)
+          if (op.tipo === 'insert' && op.payload && !op.payload.centro_id && CENTRO_ID) {
             op.payload.centro_id = CENTRO_ID;
           }
+          let error = null;
           if (op.tipo === 'insert') {
-            const { error } = await sb.from('donativos').insert(op.payload);
-            if (error) { op._ultimoError = error.message; restantes.push(op); }
+            ({ error } = await sb.from(tabla).upsert(op.payload, { onConflict: 'id' }));
           } else if (op.tipo === 'update') {
-            const { error } = await sb.from('donativos').update(op.cambios).eq('id', op.id);
-            if (error) { op._ultimoError = error.message; restantes.push(op); }
+            ({ error } = await sb.from(tabla).update(op.cambios).eq('id', op.id));
+          } else if (op.tipo === 'delete') {
+            ({ error } = await sb.from(tabla).delete().eq('id', op.id));
           }
+          if (error) { errores[op._id] = error.message; } else { exitosos.add(op._id); }
         } catch (e) {
-          op._ultimoError = 'Sin conexión';
-          restantes.push(op);
+          errores[op._id] = 'Sin conexión';
         }
       }
-      guardarCola(restantes);
+      // Re-leer la cola viva (pudo crecer durante el proceso) y quitar solo lo exitoso
+      const viva = obtenerCola();
+      const nueva = viva
+        .filter(op => !op._id || !exitosos.has(op._id))
+        .map(op => (op._id && errores[op._id]) ? { ...op, _ultimoError: errores[op._id] } : op);
+      guardarCola(nueva);
       actualizarBadgesPendientes();
-      if (restantes.length > 0) actualizarInventario(filtroActual);
+      // Refrescar vistas desde el servidor (si hay conexión) para reflejar lo sincronizado
+      await actualizarInventario(filtroActual);
+      if (!document.getElementById('panel-detalle-lote').classList.contains('hidden')) pintarDetalleLote();
+      } finally {
+        sincronizando = false;
+      }
     }
 
     document.getElementById('btn-reintentar-sync').onclick = async () => {
@@ -810,11 +883,14 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       let pendiente = false;
       try {
         const { error } = await sb.from('donativos').insert(donativo);
-        if (error) { encolar({ tipo: 'insert', payload: donativo }); pendiente = true; }
+        if (error) { encolar({ tipo: 'insert', tabla: 'donativos', payload: donativo }); pendiente = true; }
       } catch (_e) {
-        encolar({ tipo: 'insert', payload: donativo });
+        encolar({ tipo: 'insert', tabla: 'donativos', payload: donativo });
         pendiente = true;
       }
+      // Reflejar de inmediato en la caché local persistida (se ve aunque se reabra sin internet)
+      inventarioCache = [{ ...donativo, creado_en: new Date().toISOString() }, ...inventarioCache.filter(d => d.id !== donativo.id)];
+      guardarCacheLocal(INVENTARIO_KEY, inventarioCache);
 
       document.getElementById('ticket-lote').textContent = lote;
       document.getElementById('ticket-titulo').textContent = pendiente ? '⏳ Guardado localmente (sin internet)' : 'Guardado con éxito';
@@ -850,6 +926,27 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     let filtroActual = 'todos';
     let terminoBusqueda = '';
     let seleccionados = new Set();
+
+    // Cachés persistentes: sobreviven aunque se cierre la app sin internet.
+    // Van amarradas al centro: si en el mismo navegador entra alguien de otro
+    // centro, su caché se ignora (no se filtran datos entre centros).
+    const INVENTARIO_KEY = 'acopio_inventario_cache';
+    const LOTES_KEY = 'acopio_lotes_cache';
+    function guardarCacheLocal(key, datos) {
+      try { localStorage.setItem(key, JSON.stringify({ c: CENTRO_ID, d: datos })); } catch (_e) { /* almacenamiento lleno */ }
+    }
+    function leerCacheScoped(key) {
+      try {
+        const obj = JSON.parse(localStorage.getItem(key) || 'null');
+        if (obj && obj.c === CENTRO_ID && Array.isArray(obj.d)) return obj.d;
+      } catch (_e) { /* ignore */ }
+      return [];
+    }
+    function hidratarCachesLocales() {
+      inventarioCache = leerCacheScoped(INVENTARIO_KEY);
+      lotesCache = leerCacheScoped(LOTES_KEY);
+    }
+
     let inventarioCache = [];
 
     async function obtenerInventarioRemoto() {
@@ -865,14 +962,15 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     // Trae datos frescos de Supabase y vuelve a pintar (usar al entrar a la pestaña, refrescar, etc.)
     async function actualizarInventario(filtro = filtroActual) {
       const remoto = await obtenerInventarioRemoto();
-      if (remoto) inventarioCache = remoto;
+      if (remoto) { inventarioCache = remoto; guardarCacheLocal(INVENTARIO_KEY, remoto); }
+      await refrescarLotesCache();
       dibujarInventario(filtro);
     }
 
     // Solo filtra y pinta lo que ya está en memoria — instantáneo, ideal para el buscador
     function obtenerItemsFiltrados(filtro = filtroActual) {
       // Mezcla con lo que todavía está pendiente de sincronizar (para no "perder" lo recién capturado)
-      const pendientesInsert = obtenerCola().filter(o => o.tipo === 'insert').map(o => ({ ...o.payload, _pendiente: true }));
+      const pendientesInsert = obtenerCola().filter(o => o.tipo === 'insert' && (o.tabla || 'donativos') === 'donativos').map(o => ({ ...o.payload, _pendiente: true }));
       const idsCache = new Set(inventarioCache.map(d => d.id));
       const items = [...inventarioCache, ...pendientesInsert.filter(p => !idsCache.has(p.id))];
 
@@ -968,6 +1066,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
                   : ''}
                 ${d.talla ? `<span class="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">${d.talla}</span>` : ''}
                 ${d.donante ? `<span class="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">🙋 ${d.donante}</span>` : ''}
+                ${d.lote_entrega_id && !enviado ? `<span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">📦 ${(lotesCache.find(l => l.id === d.lote_entrega_id) || {}).codigo || 'En lote'}</span>` : ''}
                 ${enviado ? `<span class="text-[10px] font-bold bg-green-50 text-green-700 px-2 py-0.5 rounded-full">✅ Enviado a ${d.destino}</span>` : ''}
               </div>
               ${d.observaciones ? `<p class="text-xs text-gray-500 italic mt-1">"${d.observaciones}"</p>` : ''}
@@ -1143,69 +1242,295 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     }
 
     // ============================================================
-    // 11. MARCAR COMO ENVIADO (grupo o individual, mismo flujo)
+    // 11. LOTES DE ENTREGA (armar, ver detalle, cerrar y enviar)
     // ============================================================
-    document.getElementById('btn-marcar-enviado').onclick = () => {
-      const select = document.getElementById('select-destino');
-      const destinos = obtenerDestinos();
-      select.innerHTML = destinos.map(d => `<option value="${d}">${d}</option>`).join('')
-        + `<option value="__nuevo__">+ Otro destino (agregar nuevo)</option>`;
-      document.getElementById('nuevo-destino-wrap').classList.add('hidden');
-      document.getElementById('input-nuevo-destino').value = '';
-      document.getElementById('modal-envio-resumen').textContent = `${seleccionados.size} bulto(s) seleccionado(s)`;
+    let lotesCache = [];
+    let filtroLoteActual = 'preparando';
+    let loteActualId = null;
 
-      // Checklist de empaque: categorías distintas entre lo seleccionado (recomendación de bomberos)
-      const idsSeleccionados = new Set(seleccionados);
-      const categoriasSeleccion = new Set(
-        inventarioCache.filter(d => idsSeleccionados.has(d.id)).map(d => d.categoria)
-      );
-      const checklist = document.getElementById('modal-checklist-empaque');
-      if (categoriasSeleccion.size > 1) {
-        const etiquetas = [...categoriasSeleccion].map(catId => {
-          const cat = categorias.find(c => c.id === catId);
-          return cat ? `${cat.icon} ${cat.label}` : catId;
+    async function refrescarLotesCache() {
+      const { data, error } = await sb
+        .from('lotes_entrega')
+        .select('*')
+        .eq('centro_id', CENTRO_ID)
+        .order('creado_en', { ascending: false });
+      if (!error && data) { lotesCache = data; guardarCacheLocal(LOTES_KEY, data); }
+    }
+
+    // Helpers optimistas: aplican el cambio localmente YA y lo encolan para sincronizar
+    function actualizarLoteLocal(id, cambios) {
+      lotesCache = lotesCache.map(l => l.id === id ? { ...l, ...cambios } : l);
+      guardarCacheLocal(LOTES_KEY, lotesCache);
+      encolar({ tipo: 'update', tabla: 'lotes_entrega', id, cambios });
+      sincronizarCola();
+    }
+    function eliminarLoteLocal(id) {
+      // Soltar los bultos del lote (local + encolado)
+      inventarioCache.filter(d => d.lote_entrega_id === id).forEach(d => {
+        actualizarDonativoLocal(d.id, { lote_entrega_id: null });
+      });
+      lotesCache = lotesCache.filter(l => l.id !== id);
+      guardarCacheLocal(LOTES_KEY, lotesCache);
+      encolar({ tipo: 'delete', tabla: 'lotes_entrega', id });
+      sincronizarCola();
+    }
+    function actualizarDonativoLocal(id, cambios) {
+      inventarioCache = inventarioCache.map(d => d.id === id ? { ...d, ...cambios } : d);
+      guardarCacheLocal(INVENTARIO_KEY, inventarioCache);
+      encolar({ tipo: 'update', tabla: 'donativos', id, cambios });
+      sincronizarCola();
+    }
+
+    function etiquetaEstadoLote(estado) {
+      return { preparando: 'Preparando', listo: 'Listo para enviar', enviado: 'Enviado' }[estado] || estado;
+    }
+    function colorEstadoLote(estado) {
+      return {
+        preparando: 'bg-yellow-50 text-yellow-700',
+        listo: 'bg-blue-50 text-blue-700',
+        enviado: 'bg-green-50 text-green-700',
+      }[estado] || 'bg-gray-100 text-gray-600';
+    }
+
+    async function actualizarLotes(filtro = filtroLoteActual) {
+      dibujarLotes(filtro);                 // pinta ya con la caché local
+      const antes = JSON.stringify(lotesCache.map(l => l.id));
+      await refrescarLotesCache();           // intenta refrescar si hay red
+      if (JSON.stringify(lotesCache.map(l => l.id)) !== antes) dibujarLotes(filtro);
+    }
+
+    function dibujarLotes(filtro = filtroLoteActual) {
+      const cont = document.getElementById('lista-lotes');
+      const lotesFiltrados = lotesCache.filter(l => l.estado === filtro);
+
+      if (lotesFiltrados.length === 0) {
+        cont.innerHTML = `<div class="text-center text-gray-400 text-sm py-10">No hay lotes en este estado.</div>`;
+        return;
+      }
+
+      cont.innerHTML = lotesFiltrados.map(l => {
+        const nBultos = inventarioCache.filter(d => d.lote_entrega_id === l.id).length;
+        return `
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 cursor-pointer active:bg-gray-50" data-lote-id="${l.id}">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="font-mono font-bold text-gray-800">${l.codigo}</p>
+                <p class="text-xs text-gray-500">📍 ${l.destino || 'Sin destino'}</p>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-1 rounded-full ${colorEstadoLote(l.estado)}">${etiquetaEstadoLote(l.estado)}</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">📦 ${nBultos} bulto(s) · Creado ${formatearFechaCorta(l.creado_en)}</p>
+          </div>`;
+      }).join('');
+
+      cont.querySelectorAll('[data-lote-id]').forEach(el => {
+        el.addEventListener('click', () => abrirDetalleLote(el.getAttribute('data-lote-id')));
+      });
+    }
+
+    function formatearFechaCorta(iso) {
+      if (!iso) return '—';
+      return new Date(iso).toLocaleString('es-VE', { dateStyle: 'short', timeStyle: 'short' });
+    }
+
+    document.querySelectorAll('.filtro-lote-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        filtroLoteActual = btn.getAttribute('data-filtro-lote');
+        document.querySelectorAll('.filtro-lote-btn').forEach(b => {
+          b.className = 'filtro-lote-btn flex-1 text-xs font-bold py-2 rounded-lg bg-gray-100 text-gray-500 transition-colors';
         });
-        checklist.innerHTML = `📦 Estás enviando ${categoriasSeleccion.size} categorías distintas: <b>${etiquetas.join(', ')}</b>. Recuerda empacar cada una en su propia caja o bulto.`;
-        checklist.classList.remove('hidden');
+        btn.className = 'filtro-lote-btn flex-1 text-xs font-bold py-2 rounded-lg bg-blue-600 text-white transition-colors';
+        dibujarLotes(filtroLoteActual);
+      });
+    });
+
+    function generarCodigoLote() {
+      // Se calcula localmente para funcionar sin conexión
+      const delCentro = lotesCache.filter(l => l.centro_id === CENTRO_ID).length;
+      return `LOTE-${String(delCentro + 1).padStart(5, '0')}`;
+    }
+
+    function crearLoteLocal(destino) {
+      const nuevo = {
+        id: crypto.randomUUID(),
+        centro_id: CENTRO_ID,
+        codigo: generarCodigoLote(),
+        destino: (destino || '').trim() || null,
+        estado: 'preparando',
+        creado_en: new Date().toISOString(),
+        cerrado_en: null,
+        notas: null,
+      };
+      lotesCache = [nuevo, ...lotesCache];
+      guardarCacheLocal(LOTES_KEY, lotesCache);
+      encolar({ tipo: 'insert', tabla: 'lotes_entrega', payload: { ...nuevo } });
+      sincronizarCola();
+      return nuevo;
+    }
+
+    document.getElementById('btn-nuevo-lote').onclick = () => {
+      const destino = prompt('¿Destino de este nuevo lote? (puedes cambiarlo después)') || '';
+      const nuevo = crearLoteLocal(destino);
+      filtroLoteActual = 'preparando';
+      abrirDetalleLote(nuevo.id);
+    };
+
+    // --- Detalle de un lote ---
+    async function abrirDetalleLote(loteId) {
+      loteActualId = loteId;
+      pintarDetalleLote();                       // pinta ya, con lo que hay en caché (offline-friendly)
+      document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById('panel-lotes').classList.add('hidden');
+      document.getElementById('panel-detalle-lote').classList.remove('hidden');
+      actualizarInventario(filtroActual).then(pintarDetalleLote); // refresca en segundo plano si hay red
+    }
+
+    function pintarDetalleLote() {
+      const lote = lotesCache.find(l => l.id === loteActualId);
+      if (!lote) return;
+
+      document.getElementById('dl-codigo').textContent = lote.codigo;
+      document.getElementById('dl-destino').textContent = `Destino: ${lote.destino || '—'}`;
+      const badge = document.getElementById('dl-estado-badge');
+      badge.textContent = etiquetaEstadoLote(lote.estado);
+      badge.className = `text-xs font-bold px-3 py-1 rounded-full ${colorEstadoLote(lote.estado)}`;
+
+      const contenido = inventarioCache.filter(d => d.lote_entrega_id === lote.id);
+
+      // Resumen por categoría dentro del lote
+      const porCat = {};
+      contenido.forEach(d => {
+        if (!porCat[d.categoria]) porCat[d.categoria] = 0;
+        porCat[d.categoria] += Number(d.cantidad) || 0;
+      });
+      const resumen = document.getElementById('dl-resumen-categorias');
+      const entradas = Object.entries(porCat);
+      resumen.innerHTML = entradas.length
+        ? entradas.map(([catId, cant]) => {
+            const cat = categorias.find(c => c.id === catId) || categorias[categorias.length - 1];
+            return `<p class="flex justify-between"><span>${cat.icon} ${cat.label}</span><span class="font-bold">${cant}</span></p>`;
+          }).join('')
+        : '<p class="text-gray-400">Este lote todavía no tiene bultos.</p>';
+
+      // Contenido detallado
+      const dlContenido = document.getElementById('dl-contenido');
+      dlContenido.innerHTML = contenido.length ? contenido.map(d => {
+        const cat = categorias.find(c => c.id === d.categoria) || categorias[categorias.length - 1];
+        return `
+          <div class="flex items-center justify-between border border-gray-100 rounded-xl p-3">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xl shrink-0">${cat.icon}</span>
+              <div class="min-w-0">
+                <p class="font-bold text-gray-800 text-sm truncate">${d.descripcion}</p>
+                <p class="text-xs text-gray-500">${d.cantidad} ${d.unidad} · Lote ${d.lote || '—'}</p>
+              </div>
+            </div>
+            ${lote.estado === 'preparando' ? `<button data-quitar-id="${d.id}" class="text-xs text-red-500 font-bold shrink-0 px-2">✕ Quitar</button>` : ''}
+          </div>`;
+      }).join('') : '<p class="text-center text-gray-400 text-sm py-6">Sin bultos todavía. Ve a Inventario y selecciona qué agregar.</p>';
+
+      dlContenido.querySelectorAll('[data-quitar-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          actualizarDonativoLocal(btn.getAttribute('data-quitar-id'), { lote_entrega_id: null });
+          pintarDetalleLote();
+        });
+      });
+
+      // Acciones según el estado
+      const acciones = document.getElementById('dl-acciones');
+      if (lote.estado === 'preparando') {
+        acciones.innerHTML = `
+          <button id="dl-btn-marcar-listo" class="bg-blue-600 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform">✅ Marcar Listo</button>
+          <button id="dl-btn-eliminar" class="bg-gray-100 text-gray-600 font-bold py-3 rounded-xl active:bg-gray-200">🗑️ Eliminar Lote</button>`;
+        document.getElementById('dl-btn-marcar-listo').onclick = () => {
+          if (contenido.length === 0) { alert('Agrega al menos un bulto antes de marcarlo listo.'); return; }
+          actualizarLoteLocal(lote.id, { estado: 'listo' });
+          pintarDetalleLote();
+        };
+        document.getElementById('dl-btn-eliminar').onclick = () => {
+          if (!confirm('¿Eliminar este lote? Los bultos vuelven a quedar sin lote asignado.')) return;
+          eliminarLoteLocal(lote.id);
+          volverAPanelLotes();
+        };
+      } else if (lote.estado === 'listo') {
+        acciones.innerHTML = `
+          <button id="dl-btn-confirmar-envio" class="bg-green-600 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform">🚚 Confirmar Envío</button>
+          <button id="dl-btn-volver-preparando" class="bg-gray-100 text-gray-600 font-bold py-3 rounded-xl active:bg-gray-200">↩️ Volver a Preparando</button>`;
+        document.getElementById('dl-btn-confirmar-envio').onclick = () => {
+          if (!confirm(`¿Confirmar el envío de ${lote.codigo} a "${lote.destino || 'sin destino'}"? Esto marca todos sus bultos como enviados.`)) return;
+          const ahora = new Date().toISOString();
+          inventarioCache.filter(d => d.lote_entrega_id === lote.id).forEach(d => {
+            actualizarDonativoLocal(d.id, { estado: 'enviado', destino: lote.destino, fecha_envio: ahora });
+          });
+          actualizarLoteLocal(lote.id, { estado: 'enviado', cerrado_en: ahora });
+          pintarDetalleLote();
+        };
+        document.getElementById('dl-btn-volver-preparando').onclick = () => {
+          actualizarLoteLocal(lote.id, { estado: 'preparando' });
+          pintarDetalleLote();
+        };
       } else {
-        checklist.classList.add('hidden');
+        acciones.innerHTML = '';
       }
+    }
 
-      document.getElementById('modal-envio').classList.remove('hidden');
+    function volverAPanelLotes() {
+      document.getElementById('panel-detalle-lote').classList.add('hidden');
+      document.getElementById('panel-lotes').classList.remove('hidden');
+      actualizarLotes(filtroLoteActual);
+    }
+    document.getElementById('btn-volver-lotes').onclick = volverAPanelLotes;
+
+    // --- Agregar bultos seleccionados (desde Inventario) a un lote ---
+    document.getElementById('btn-marcar-enviado').onclick = async () => {
+      const lotesAbiertos = lotesCache.filter(l => l.estado === 'preparando');
+      const select = document.getElementById('mal-select-lote');
+      select.innerHTML = lotesAbiertos.map(l => `<option value="${l.id}">${l.codigo} → ${l.destino || 'sin destino'}</option>`).join('')
+        + `<option value="__nuevo__">+ Crear nuevo lote</option>`;
+      document.getElementById('mal-resumen').textContent = `${seleccionados.size} bulto(s) seleccionado(s)`;
+      document.getElementById('mal-nuevo-destino-wrap').classList.toggle('hidden', select.value !== '__nuevo__');
+
+      const destinos = obtenerDestinos();
+      const selectDestino = document.getElementById('mal-select-destino');
+      selectDestino.innerHTML = destinos.map(d => `<option value="${d}">${d}</option>`).join('')
+        + `<option value="__nuevo__">+ Otro destino (agregar nuevo)</option>`;
+
+      document.getElementById('modal-agregar-lote').classList.remove('hidden');
     };
 
-    document.getElementById('select-destino').onchange = (e) => {
-      document.getElementById('nuevo-destino-wrap').classList.toggle('hidden', e.target.value !== '__nuevo__');
+    document.getElementById('mal-select-lote').onchange = (e) => {
+      document.getElementById('mal-nuevo-destino-wrap').classList.toggle('hidden', e.target.value !== '__nuevo__');
+    };
+    document.getElementById('mal-select-destino').onchange = (e) => {
+      document.getElementById('mal-nuevo-destino-texto-wrap').classList.toggle('hidden', e.target.value !== '__nuevo__');
     };
 
-    document.getElementById('btn-cancelar-envio').onclick = () => {
-      document.getElementById('modal-envio').classList.add('hidden');
+    document.getElementById('btn-cancelar-agregar-lote').onclick = () => {
+      document.getElementById('modal-agregar-lote').classList.add('hidden');
     };
 
-    document.getElementById('btn-confirmar-envio').onclick = async () => {
-      const select = document.getElementById('select-destino');
-      let destino = select.value;
-      if (destino === '__nuevo__') {
-        const nuevo = document.getElementById('input-nuevo-destino').value.trim();
-        if (!nuevo) { alert('Escribe el nombre del nuevo destino'); return; }
-        destino = nuevo;
-        guardarNuevoDestino(nuevo);
+    document.getElementById('btn-confirmar-agregar-lote').onclick = () => {
+      const seleccionLote = document.getElementById('mal-select-lote').value;
+      let loteId = seleccionLote;
+
+      if (seleccionLote === '__nuevo__') {
+        let destino = document.getElementById('mal-select-destino').value;
+        if (destino === '__nuevo__') {
+          const nuevo = document.getElementById('mal-nuevo-destino-texto').value.trim();
+          if (!nuevo) { alert('Escribe el nombre del nuevo destino'); return; }
+          destino = nuevo;
+          guardarNuevoDestino(nuevo);
+        }
+        loteId = crearLoteLocal(destino).id;
       }
-
-      const cambios = { estado: 'enviado', destino, fecha_envio: new Date().toISOString() };
 
       for (const id of seleccionados) {
-        try {
-          const { error } = await sb.from('donativos').update(cambios).eq('id', id);
-          if (error) encolar({ tipo: 'update', id, cambios });
-        } catch (_e) {
-          encolar({ tipo: 'update', id, cambios });
-        }
+        actualizarDonativoLocal(id, { lote_entrega_id: loteId });
       }
 
-      document.getElementById('modal-envio').classList.add('hidden');
+      document.getElementById('modal-agregar-lote').classList.add('hidden');
       seleccionados.clear();
-      actualizarInventario(filtroActual);
+      dibujarInventario(filtroActual);
     };
 
     // ============================================================
