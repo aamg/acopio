@@ -166,9 +166,25 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         <h2 class="text-lg font-bold text-gray-800">Inventario Actual</h2>
         <div class="flex gap-2">
           <button id="btn-exportar-csv" class="text-sm bg-white border px-3 py-1 rounded-lg font-semibold shadow-sm active:bg-gray-100">⬇️ CSV</button>
+          <button id="btn-exportar-pdf" class="text-sm bg-white border px-3 py-1 rounded-lg font-semibold shadow-sm active:bg-gray-100">📄 PDF</button>
           <button id="btn-refresh-inv" class="text-sm bg-white border px-3 py-1 rounded-lg font-semibold shadow-sm active:bg-gray-100">↻ Actualizar</button>
         </div>
       </div>
+
+      <details class="bg-white rounded-2xl shadow-sm border border-gray-100 px-4 py-3">
+        <summary class="text-sm font-bold text-gray-700 cursor-pointer">📅 Rango de fechas para CSV/PDF (opcional)</summary>
+        <div class="flex gap-3 mt-3">
+          <div class="w-1/2">
+            <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Desde</label>
+            <input type="date" id="filtro-fecha-desde" class="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg outline-none text-sm">
+          </div>
+          <div class="w-1/2">
+            <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Hasta</label>
+            <input type="date" id="filtro-fecha-hasta" class="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg outline-none text-sm">
+          </div>
+        </div>
+        <p class="text-[10px] text-gray-400 mt-2">Si los dejas vacíos, se exporta todo lo que está cargado.</p>
+      </details>
 
       <div id="pendientes-badge" class="hidden bg-yellow-50 border border-yellow-200 text-yellow-700 text-xs font-semibold px-3 py-2 rounded-xl">
         ⏳ <span id="pendientes-count">0</span> cambio(s) esperando conexión para sincronizar
@@ -183,6 +199,16 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         <button type="button" data-filtro="en_acopio" class="filtro-btn flex-1 text-xs font-bold py-2 rounded-lg bg-gray-100 text-gray-500 transition-colors">En Acopio</button>
         <button type="button" data-filtro="enviado" class="filtro-btn flex-1 text-xs font-bold py-2 rounded-lg bg-gray-100 text-gray-500 transition-colors">Enviados</button>
       </div>
+
+      <details class="bg-white rounded-2xl shadow-sm border border-gray-100 px-4 py-3">
+        <summary class="text-sm font-bold text-gray-700 cursor-pointer">📊 Resumen por categoría</summary>
+        <div id="resumen-categorias" class="mt-3 space-y-1 text-sm"></div>
+      </details>
+
+      <details id="resumen-destinos-wrap" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 px-4 py-3">
+        <summary class="text-sm font-bold text-gray-700 cursor-pointer">🚚 Resumen por destino</summary>
+        <div id="resumen-destinos" class="mt-3 space-y-1 text-sm"></div>
+      </details>
 
       <div id="lista-inventario" class="space-y-4">
         </div>
@@ -264,6 +290,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     <div class="bg-white rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-xl">
       <h3 class="font-bold text-gray-800 text-lg">🚚 Marcar como Enviado</h3>
       <p class="text-xs text-gray-500" id="modal-envio-resumen">0 bultos seleccionados</p>
+      <div id="modal-checklist-empaque" class="hidden bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-xl p-3"></div>
 
       <div>
         <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Destino</label>
@@ -338,6 +365,16 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     function generarLote(catId) {
       const prefijo = PREFIJOS_LOTE[catId] || 'GEN';
       return `${prefijo}-${Date.now().toString().slice(-5)}`;
+    }
+
+    function venceProximo(vencimientoStr) {
+      // vencimientoStr viene de <input type="month"> en formato "YYYY-MM"
+      if (!vencimientoStr) return false;
+      const [anio, mes] = vencimientoStr.split('-').map(Number);
+      if (!anio || !mes) return false;
+      const fechaVenc = new Date(anio, mes - 1, 1);
+      const diasRestantes = (fechaVenc - new Date()) / (1000 * 60 * 60 * 24);
+      return diasRestantes <= 30;
     }
 
     // ============================================================
@@ -855,12 +892,49 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       return filtrados;
     }
 
+    function actualizarResumenes(filtrados) {
+      // --- Resumen por categoría ---
+      const porCat = {};
+      filtrados.forEach(d => {
+        const key = d.categoria;
+        if (!porCat[key]) porCat[key] = { cantidad: 0, unidades: new Set() };
+        porCat[key].cantidad += Number(d.cantidad) || 0;
+        porCat[key].unidades.add(d.unidad);
+      });
+      const contCat = document.getElementById('resumen-categorias');
+      const entradasCat = Object.entries(porCat);
+      contCat.innerHTML = entradasCat.length ? entradasCat.map(([catId, info]) => {
+        const cat = categorias.find(c => c.id === catId) || categorias[categorias.length - 1];
+        const unidadTxt = info.unidades.size === 1 ? [...info.unidades][0] : 'unid.';
+        return `<p class="flex justify-between"><span>${cat.icon} ${cat.label}</span><span class="font-bold">${info.cantidad} ${unidadTxt}</span></p>`;
+      }).join('') : '<p class="text-gray-400">Sin datos en esta vista.</p>';
+
+      // --- Resumen por destino (solo enviados) ---
+      const porDestino = {};
+      filtrados.filter(d => d.estado === 'enviado' && d.destino).forEach(d => {
+        if (!porDestino[d.destino]) porDestino[d.destino] = { envios: 0, unidades: 0 };
+        porDestino[d.destino].envios += 1;
+        porDestino[d.destino].unidades += Number(d.cantidad) || 0;
+      });
+      const wrapDestinos = document.getElementById('resumen-destinos-wrap');
+      const entradasDest = Object.entries(porDestino);
+      if (entradasDest.length) {
+        wrapDestinos.classList.remove('hidden');
+        document.getElementById('resumen-destinos').innerHTML = entradasDest.map(([destino, info]) => `
+          <p class="flex justify-between"><span>📍 ${destino}</span><span class="font-bold">${info.envios} envío(s) · ${info.unidades} unid.</span></p>
+        `).join('');
+      } else {
+        wrapDestinos.classList.add('hidden');
+      }
+    }
+
     function dibujarInventario(filtro = filtroActual) {
       const lista = document.getElementById('lista-inventario');
       seleccionados.clear();
       actualizarBarraAcciones();
 
       const filtrados = obtenerItemsFiltrados(filtro);
+      actualizarResumenes(filtrados);
 
       if (filtrados.length === 0) {
         lista.innerHTML = `<div class="text-center text-gray-400 text-sm py-10">No hay bultos en esta vista.</div>`;
@@ -888,7 +962,10 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
               </div>
               <div class="flex flex-wrap gap-1 mt-2">
                 ${d.requiere_frio ? `<span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">❄️ Frío</span>` : ''}
-                ${d.vencimiento ? `<span class="text-[10px] font-bold bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-full">⏳ ${d.vencimiento}</span>` : ''}
+                ${d.vencimiento ? (venceProximo(d.vencimiento)
+                    ? `<span class="text-[10px] font-bold bg-red-50 text-red-700 px-2 py-0.5 rounded-full">⚠️ Vence pronto (${d.vencimiento})</span>`
+                    : `<span class="text-[10px] font-bold bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-full">⏳ ${d.vencimiento}</span>`)
+                  : ''}
                 ${d.talla ? `<span class="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">${d.talla}</span>` : ''}
                 ${d.donante ? `<span class="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">🙋 ${d.donante}</span>` : ''}
                 ${enviado ? `<span class="text-[10px] font-bold bg-green-50 text-green-700 px-2 py-0.5 rounded-full">✅ Enviado a ${d.destino}</span>` : ''}
@@ -931,9 +1008,97 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       return texto;
     }
 
+    function escaparHTML(valor) {
+      const texto = (valor === null || valor === undefined) ? '' : String(valor);
+      return texto.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function aplicarRangoFechas(items) {
+      const desde = document.getElementById('filtro-fecha-desde').value;
+      const hasta = document.getElementById('filtro-fecha-hasta').value;
+      if (!desde && !hasta) return items;
+      return items.filter(d => {
+        if (!d.creado_en) return true;
+        const fecha = d.creado_en.slice(0, 10);
+        if (desde && fecha < desde) return false;
+        if (hasta && fecha > hasta) return false;
+        return true;
+      });
+    }
+
+    document.getElementById('btn-exportar-pdf').onclick = () => {
+      const items = aplicarRangoFechas(obtenerItemsFiltrados(filtroActual));
+      if (items.length === 0) { alert('No hay artículos en este rango/vista para exportar.'); return; }
+
+      const nombreCentro = document.getElementById('cfg-nombre-display').textContent || 'Centro de Acopio';
+      const etiquetaFiltro = { todos: 'Todos', en_acopio: 'En Acopio', enviado: 'Enviados' }[filtroActual] || 'Todos';
+      const ahora = new Date().toLocaleString('es-VE', { dateStyle: 'long', timeStyle: 'short' });
+
+      const filasHTML = items.map(d => {
+        const fecha = d.creado_en ? new Date(d.creado_en).toLocaleDateString('es-VE') : '';
+        const cat = categorias.find(c => c.id === d.categoria);
+        return `<tr>
+          <td>${fecha}</td>
+          <td>${escaparHTML(cat ? cat.label : d.categoria)}</td>
+          <td>${escaparHTML(d.descripcion)}</td>
+          <td style="text-align:center">${escaparHTML(d.cantidad)} ${escaparHTML(d.unidad)}</td>
+          <td>${escaparHTML(d.lote)}</td>
+          <td>${escaparHTML(d.donante)}</td>
+          <td>${d.estado === 'enviado' ? 'Enviado' : 'En Acopio'}</td>
+          <td>${escaparHTML(d.destino)}</td>
+          <td>${escaparHTML(d.observaciones)}</td>
+        </tr>`;
+      }).join('');
+
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte de Inventario</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; color: #111; }
+        h1 { font-size: 20px; margin-bottom: 2px; }
+        .meta { font-size: 12px; color: #555; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; vertical-align: top; }
+        th { background: #1e3a8a; color: #fff; }
+        tr:nth-child(even) { background: #f3f4f6; }
+        .pie { margin-top: 14px; font-size: 11px; color: #777; }
+        @media print { @page { margin: 14mm; } }
+      </style></head>
+      <body>
+        <h1>📦 Reporte de Inventario — ${escaparHTML(nombreCentro)}</h1>
+        <div class="meta">Vista: ${etiquetaFiltro} · Generado: ${ahora} · Total de artículos: ${items.length}</div>
+        <table>
+          <thead><tr>
+            <th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Cantidad</th><th>Lote</th>
+            <th>Donante</th><th>Estado</th><th>Destino</th><th>Observaciones</th>
+          </tr></thead>
+          <tbody>${filasHTML}</tbody>
+        </table>
+        <div class="pie">Generado con Acopio Móvil</div>
+      </body></html>`;
+
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      document.body.appendChild(iframe);
+
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(html);
+      doc.close();
+
+      iframe.onload = () => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(() => document.body.removeChild(iframe), 1000);
+      };
+    };
+
     document.getElementById('btn-exportar-csv').onclick = () => {
-      const items = obtenerItemsFiltrados(filtroActual);
-      if (items.length === 0) { alert('No hay artículos en esta vista para exportar.'); return; }
+      const items = aplicarRangoFechas(obtenerItemsFiltrados(filtroActual));
+      if (items.length === 0) { alert('No hay artículos en este rango/vista para exportar.'); return; }
 
       const encabezados = ['Fecha', 'Hora', 'Categoria', 'Descripcion', 'Cantidad', 'Unidad', 'Lote', 'Donante', 'Estado', 'Destino', 'Observaciones'];
       const filas = items.map(d => {
@@ -988,6 +1153,24 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       document.getElementById('nuevo-destino-wrap').classList.add('hidden');
       document.getElementById('input-nuevo-destino').value = '';
       document.getElementById('modal-envio-resumen').textContent = `${seleccionados.size} bulto(s) seleccionado(s)`;
+
+      // Checklist de empaque: categorías distintas entre lo seleccionado (recomendación de bomberos)
+      const idsSeleccionados = new Set(seleccionados);
+      const categoriasSeleccion = new Set(
+        inventarioCache.filter(d => idsSeleccionados.has(d.id)).map(d => d.categoria)
+      );
+      const checklist = document.getElementById('modal-checklist-empaque');
+      if (categoriasSeleccion.size > 1) {
+        const etiquetas = [...categoriasSeleccion].map(catId => {
+          const cat = categorias.find(c => c.id === catId);
+          return cat ? `${cat.icon} ${cat.label}` : catId;
+        });
+        checklist.innerHTML = `📦 Estás enviando ${categoriasSeleccion.size} categorías distintas: <b>${etiquetas.join(', ')}</b>. Recuerda empacar cada una en su propia caja o bulto.`;
+        checklist.classList.remove('hidden');
+      } else {
+        checklist.classList.add('hidden');
+      }
+
       document.getElementById('modal-envio').classList.remove('hidden');
     };
 
