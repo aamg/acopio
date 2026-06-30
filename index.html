@@ -289,6 +289,47 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       </div>
     </div>
 
+    <!-- ======= MODAL: EDITAR BULTO (desde Inventario) ======= -->
+    <div id="modal-editar-item" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
+        <h3 class="font-bold text-gray-800 text-lg">✏️ Editar Bulto</h3>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">¿Qué es?</label>
+          <input type="text" id="edit-descripcion" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+        </div>
+
+        <div class="flex gap-4 items-end">
+          <div class="w-1/2">
+            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Cantidad</label>
+            <input type="number" id="edit-cantidad" min="1" inputmode="numeric" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+          </div>
+          <div class="w-1/2">
+            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Unidad</label>
+            <select id="edit-unidad" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none">
+              <option>Unidades</option><option>Cajas</option><option>Bolsas</option><option>Kilos</option><option>Litros</option><option>Pares</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="edit-campos-especificos" class="space-y-3"></div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Donante (opcional)</label>
+          <input type="text" id="edit-donante" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Observaciones (opcional)</label>
+          <input type="text" id="edit-observaciones" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button type="button" id="btn-cancelar-editar" class="w-1/2 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl active:bg-gray-200">Cancelar</button>
+          <button type="button" id="btn-confirmar-editar" class="w-1/2 bg-blue-600 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform">Guardar</button>
+        </div>
+      </div>
+    </div>
+
     <section id="panel-config" class="panel hidden space-y-4">
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
         <h2 class="font-bold text-gray-800 border-b pb-2">Centro de Acopio</h2>
@@ -1059,6 +1100,11 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
                 ${enviado ? `<span class="text-[10px] font-bold bg-green-50 text-green-700 px-2 py-0.5 rounded-full">✅ Enviado a ${d.destino}</span>` : ''}
               </div>
               ${d.observaciones ? `<p class="text-xs text-gray-500 italic mt-1">"${d.observaciones}"</p>` : ''}
+              ${!enviado ? `
+              <div class="flex gap-4 mt-2 pt-2 border-t border-gray-50">
+                <button type="button" data-editar-id="${d.id}" class="text-xs font-bold text-blue-600">✏️ Editar</button>
+                <button type="button" data-eliminar-id="${d.id}" class="text-xs font-bold text-red-500">🗑️ Eliminar</button>
+              </div>` : ''}
             </div>
           </div>`;
     }
@@ -1121,6 +1167,17 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
           const id = e.target.getAttribute('data-id');
           if (e.target.checked) seleccionados.add(id); else seleccionados.delete(id);
           actualizarBarraAcciones();
+        });
+      });
+
+      document.querySelectorAll('[data-editar-id]').forEach(btn => {
+        btn.addEventListener('click', () => abrirModalEditar(btn.getAttribute('data-editar-id')));
+      });
+      document.querySelectorAll('[data-eliminar-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (!confirm('¿Eliminar este bulto? Esta acción no se puede deshacer.')) return;
+          eliminarDonativoLocal(btn.getAttribute('data-eliminar-id'));
+          dibujarInventario(filtroActual);
         });
       });
     }
@@ -1322,6 +1379,129 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       encolar({ tipo: 'update', tabla: 'donativos', id, cambios });
       sincronizarCola();
     }
+
+    // Borra un bulto. Si todavía no se había sincronizado (insert pendiente en la cola),
+    // basta con quitarlo de la cola — nunca llegó a existir en el servidor.
+    // Si ya estaba sincronizado, se encola un delete real.
+    function eliminarDonativoLocal(id) {
+      inventarioCache = inventarioCache.filter(d => d.id !== id);
+      guardarCacheLocal(INVENTARIO_KEY, inventarioCache);
+
+      const cola = obtenerCola();
+      const teniaInsertPendiente = cola.some(o => o.tipo === 'insert' && (o.tabla || 'donativos') === 'donativos' && o.payload?.id === id);
+      if (teniaInsertPendiente) {
+        guardarCola(cola.filter(o => !(o.tipo === 'insert' && (o.tabla || 'donativos') === 'donativos' && o.payload?.id === id)));
+        actualizarBadgesPendientes();
+      } else {
+        encolar({ tipo: 'delete', tabla: 'donativos', id });
+      }
+      sincronizarCola();
+    }
+
+    // Abre el modal de edición precargado con los datos actuales del bulto
+    // (busca primero en la caché sincronizada, y si no, en lo pendiente de sincronizar).
+    let editandoId = null;
+    function abrirModalEditar(id) {
+      let d = inventarioCache.find(x => x.id === id);
+      if (!d) {
+        const pendiente = obtenerCola().find(o => o.tipo === 'insert' && (o.tabla || 'donativos') === 'donativos' && o.payload?.id === id);
+        d = pendiente ? pendiente.payload : null;
+      }
+      if (!d) return;
+
+      editandoId = id;
+      document.getElementById('edit-descripcion').value = d.descripcion || '';
+      document.getElementById('edit-cantidad').value = d.cantidad || 1;
+      document.getElementById('edit-unidad').value = d.unidad || 'Unidades';
+      document.getElementById('edit-donante').value = d.donante || '';
+      document.getElementById('edit-observaciones').value = d.observaciones || '';
+
+      const wrap = document.getElementById('edit-campos-especificos');
+      if (d.categoria === 'medicinas') {
+        wrap.innerHTML = `
+          <div>
+            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Vencimiento</label>
+            <input type="month" id="edit-venc" value="${d.vencimiento || ''}" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none">
+          </div>
+          <label class="flex items-center gap-2 p-3 bg-blue-50 rounded-xl border border-blue-100">
+            <input type="checkbox" id="edit-frio" ${d.requiere_frio ? 'checked' : ''} class="w-5 h-5 rounded text-blue-600 accent-blue-600">
+            <span class="text-sm font-bold text-blue-800">Requiere cadena de frío ❄️</span>
+          </label>`;
+      } else if (d.categoria === 'ropa') {
+        const opcTalla = ['Infantil', 'Adulto S/M', 'Adulto L/XL'];
+        const opcGenero = ['Unisex', 'Mujer', 'Hombre'];
+        wrap.innerHTML = `
+          <div class="flex gap-3">
+            <div class="w-1/2">
+              <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Talla</label>
+              <select id="edit-talla" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm">
+                ${opcTalla.map(o => `<option ${d.talla === o ? 'selected' : ''}>${o}</option>`).join('')}
+              </select>
+            </div>
+            <div class="w-1/2">
+              <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Género</label>
+              <select id="edit-genero" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm">
+                ${opcGenero.map(o => `<option ${d.genero === o ? 'selected' : ''}>${o}</option>`).join('')}
+              </select>
+            </div>
+          </div>`;
+      } else if (d.categoria === 'calzados') {
+        const opc = ['Niños', 'Damas', 'Caballeros'];
+        wrap.innerHTML = `
+          <div>
+            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Para quién</label>
+            <select id="edit-talla" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm">
+              ${opc.map(o => `<option ${d.talla === o ? 'selected' : ''}>${o}</option>`).join('')}
+            </select>
+          </div>`;
+      } else if (d.categoria === 'lenceria') {
+        const opc = ['Individual', 'Infantil', 'Matrimonial', 'Queen', 'King'];
+        wrap.innerHTML = `
+          <div>
+            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Tamaño de cama</label>
+            <select id="edit-talla" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm">
+              ${opc.map(o => `<option ${d.talla === o ? 'selected' : ''}>${o}</option>`).join('')}
+            </select>
+          </div>`;
+      } else {
+        wrap.innerHTML = '';
+      }
+
+      document.getElementById('modal-editar-item').classList.remove('hidden');
+    }
+
+    document.getElementById('btn-cancelar-editar').onclick = () => {
+      document.getElementById('modal-editar-item').classList.add('hidden');
+      editandoId = null;
+    };
+
+    document.getElementById('btn-confirmar-editar').onclick = () => {
+      if (!editandoId) return;
+      const descripcion = document.getElementById('edit-descripcion').value.trim();
+      if (!descripcion) { alert('La descripción no puede quedar vacía'); return; }
+
+      const cambios = {
+        descripcion,
+        cantidad: parseInt(document.getElementById('edit-cantidad').value) || 1,
+        unidad: document.getElementById('edit-unidad').value,
+        donante: document.getElementById('edit-donante').value.trim() || null,
+        observaciones: document.getElementById('edit-observaciones').value.trim() || null,
+      };
+      const elVenc = document.getElementById('edit-venc');
+      if (elVenc) cambios.vencimiento = elVenc.value || null;
+      const elFrio = document.getElementById('edit-frio');
+      if (elFrio) cambios.requiere_frio = elFrio.checked;
+      const elTalla = document.getElementById('edit-talla');
+      if (elTalla) cambios.talla = elTalla.value;
+      const elGenero = document.getElementById('edit-genero');
+      if (elGenero) cambios.genero = elGenero.value;
+
+      actualizarDonativoLocal(editandoId, cambios);
+      document.getElementById('modal-editar-item').classList.add('hidden');
+      editandoId = null;
+      dibujarInventario(filtroActual);
+      if (!document.getElementById('panel-detalle-lote').classList.contains('hidden')) pintarDetalleLote();
+    };
 
     function etiquetaEstadoLote(estado) {
       return { preparando: 'Preparando', listo: 'Listo para enviar', enviado: 'Enviado' }[estado] || estado;
